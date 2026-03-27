@@ -99,11 +99,20 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
     <span class="ms" style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:#475569;font-size:15px">search</span>
     <input id="searchInput" oninput="doSearch()" type="text" placeholder="BUSCAR DEUDOR..." style="background:#131b2e;border:none;border-radius:999px;padding:7px 14px 7px 34px;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#cbd5e1;outline:none;width:220px;font-family:Inter,sans-serif;"/>
   </div>
-  <div style="display:flex;align-items:center;gap:14px">
+  <div style="display:flex;align-items:center;gap:12px">
+    <!-- Sync status -->
     <div id="syncFull" style="display:none;align-items:center;gap:6px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#fbbf24">
       <span style="width:7px;height:7px;border-radius:50%;background:#fbbf24;animation:pulse 1s infinite"></span>Guardando...
     </div>
+    <div id="syncOk" style="display:none;align-items:center;gap:6px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#4edea3">
+      <span class="ms" style="font-size:14px">cloud_done</span>Sincronizado
+    </div>
     <span id="dateStr" style="color:#8892aa;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:600"></span>
+    <div style="width:1px;height:14px;background:rgba(255,255,255,0.08)"></div>
+    <!-- Botón Sync -->
+    <button onclick="syncData(true)" id="syncBtn" style="background:#222a3d;color:#94a3b8;border:1px solid rgba(255,255,255,0.08);font-weight:700;padding:8px 14px;border-radius:10px;font-size:11px;cursor:pointer;display:flex;align-items:center;gap:5px;letter-spacing:.05em;text-transform:uppercase;font-family:Inter,sans-serif;transition:all .2s" onmouseover="this.style.color='#f1f5f9'" onmouseout="this.style.color='#94a3b8'">
+      <span class="ms" style="font-size:15px">cloud_upload</span>Sync
+    </button>
     <div style="width:1px;height:14px;background:rgba(255,255,255,0.08)"></div>
     <button onclick="openModal()" style="background:#adc6ff;color:#002e6a;font-weight:700;padding:8px 18px;border-radius:10px;border:none;font-size:11px;cursor:pointer;display:flex;align-items:center;gap:5px;letter-spacing:.05em;text-transform:uppercase;font-family:Inter,sans-serif;transition:all .2s">
       <span class="ms" style="font-size:15px">add</span>Nuevo Préstamo
@@ -998,16 +1007,51 @@ function importData(e) { const f = e.target.files[0]; if (!f) return; const r = 
 //  SYNC
 // ══════════════════════════════════════════════
 function setSyncUI(s) {
-  const dot = document.getElementById('syncDot'), txt = document.getElementById('syncTxt'), full = document.getElementById('syncFull');
+  const dot = document.getElementById('syncDot');
+  const txt = document.getElementById('syncTxt');
+  const full = document.getElementById('syncFull');
+  const ok = document.getElementById('syncOk');
+  const btn = document.getElementById('syncBtn');
   full.style.display = 'none';
-  if (s === 'syncing') { full.style.display = 'flex'; }
-  else if (s === 'ok') { dot.style.background = '#4edea3'; txt.textContent = 'Sincronizado'; }
-  else { dot.style.background = '#374151'; txt.textContent = 'Local'; }
+  ok.style.display = 'none';
+  if (s === 'syncing') {
+    full.style.display = 'flex';
+    btn.style.opacity = '0.4';
+    btn.style.pointerEvents = 'none';
+    dot.style.background = '#fbbf24';
+    txt.textContent = 'Guardando...';
+  } else if (s === 'ok') {
+    ok.style.display = 'flex';
+    btn.style.opacity = '1';
+    btn.style.pointerEvents = 'auto';
+    dot.style.background = '#4edea3';
+    txt.textContent = 'Sincronizado';
+    setTimeout(() => { ok.style.display = 'none'; }, 4000);
+  } else if (s === 'error') {
+    btn.style.opacity = '1';
+    btn.style.pointerEvents = 'auto';
+    dot.style.background = '#ffb4ab';
+    txt.textContent = 'Error sync';
+  } else {
+    btn.style.opacity = '1';
+    btn.style.pointerEvents = 'auto';
+    dot.style.background = '#374151';
+    txt.textContent = 'Local';
+  }
 }
-async function syncData() {
-  if (!S.gasUrl) return; setSyncUI('syncing');
-  try { await fetch(S.gasUrl, { method: 'POST', body: JSON.stringify({ action: 'save', data: S }) }); setSyncUI('ok'); setTimeout(() => setSyncUI(''), 3000); }
-  catch { setSyncUI(''); }
+async function syncData(manual = false) {
+  if (!S.gasUrl) {
+    if (manual) alert('Primero configurá la URL del Apps Script en Config → Google Apps Script.');
+    return;
+  }
+  setSyncUI('syncing');
+  try {
+    await fetch(S.gasUrl, { method: 'POST', body: JSON.stringify({ action: 'save', data: S }) });
+    setSyncUI('ok');
+  } catch(e) {
+    setSyncUI('error');
+    if (manual) alert('Error al conectar con Google Sheets. Verificá la URL en Config.');
+  }
 }
 
 // ══════════════════════════════════════════════
