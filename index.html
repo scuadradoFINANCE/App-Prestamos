@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PréstaTrack | Ledger USD</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet"/>
+<script>
+tailwind.config={darkMode:"class",theme:{extend:{colors:{surface:"#0b1326","surface-container":"#171f33","surface-container-low":"#131b2e","surface-container-high":"#222a3d","surface-container-highest":"#2d3449","surface-bright":"#31394d","on-surface":"#dae2fd","on-surface-variant":"#c2c6d6","outline-variant":"#424754",primary:"#adc6ff","primary-container":"#4d8eff","on-primary":"#002e6a",secondary:"#4edea3","on-secondary":"#003824",tertiary:"#ffb95f",error:"#ffb4ab","error-container":"#93000a","on-error":"#690005"},fontFamily:{sans:["Inter","sans-serif"]}}}}
+</script>
+<style>
+body{background:#0b1326;font-family:'Inter',sans-serif;}
+.ms{font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;font-weight:normal;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;white-space:nowrap;direction:ltr;-webkit-font-smoothing:antialiased;font-size:20px;vertical-align:middle;}
+.tab{display:none;}.tab.active{display:block;}
+.nav-link{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:12px;font-size:14px;font-weight:600;color:#94a3b8;cursor:pointer;transition:all .2s;}
+.nav-link:hover{color:#f1f5f9;background:rgba(255,255,255,0.05);}
+.nav-link.active{color:#93c5fd;background:rgba(59,130,246,0.1);}
+.badge{display:inline-flex;align-items:center;padding:2px 10px;border-radius:9999px;font-size:10px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;}
+.fc{padding:6px 16px;border-radius:999px;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;cursor:pointer;transition:all .15s;background:#171f33;color:#64748b;border:1px solid rgba(255,255,255,0.05);}
+.fc:hover{border-color:rgba(255,255,255,0.2);color:#cbd5e1;}
+.active-fc{background:rgba(173,198,255,0.1)!important;color:#adc6ff!important;border-color:rgba(173,198,255,0.2)!important;}
+.th{padding:12px 24px;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.2em;color:#8892aa;text-align:left;}
+.td{padding:16px 24px;border-bottom:1px solid rgba(255,255,255,0.02);}
+.mi{width:100%;background:#0b1326;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:11px 14px;font-size:13px;color:#f1f5f9;outline:none;font-family:Inter,sans-serif;transition:border-color .2s;box-sizing:border-box;}
+.mi:focus{border-color:rgba(173,198,255,0.4);}
+.mi option{background:#131b2e;}
+.ml{display:block;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.2em;color:#64748b;margin-bottom:7px;}
+.cfg-btn{background:#222a3d;color:#cbd5e1;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:10px 18px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;cursor:pointer;white-space:nowrap;transition:all .2s;font-family:Inter,sans-serif;}
+.cfg-btn:hover{background:#2d3449;color:#f1f5f9;}
+input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;}
+::-webkit-scrollbar{width:4px;height:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:#424754;border-radius:2px;}
+@keyframes slideUp{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.pin-k{background:#171f33;border:1px solid rgba(255,255,255,0.05);color:#f1f5f9;font-weight:700;font-size:20px;padding:16px;border-radius:12px;cursor:pointer;transition:all .15s;font-family:Inter,sans-serif;}
+.pin-k:hover{background:#222a3d;}.pin-k:active{transform:scale(.95);}
+.tir-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;}
+</style>
+</head>
+<body class="text-on-surface antialiased overflow-x-hidden">
+
+<!-- ══ LOCK SCREEN ══ -->
+<div id="lockScreen" style="position:fixed;inset:0;z-index:200;background:#0b1326;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;">
+  <div style="text-align:center">
+    <div style="font-size:28px;font-weight:900;letter-spacing:-.04em;color:#f1f5f9">PréstaTrack</div>
+    <div style="font-size:10px;text-transform:uppercase;letter-spacing:.25em;color:#475569;font-weight:700;margin-top:3px">USD Ledger</div>
+  </div>
+  <div style="display:flex;gap:12px" id="pinDots">
+    <div id="pd0" style="width:12px;height:12px;border-radius:50%;border:2px solid #4b5563;transition:all .2s"></div>
+    <div id="pd1" style="width:12px;height:12px;border-radius:50%;border:2px solid #4b5563;transition:all .2s"></div>
+    <div id="pd2" style="width:12px;height:12px;border-radius:50%;border:2px solid #4b5563;transition:all .2s"></div>
+    <div id="pd3" style="width:12px;height:12px;border-radius:50%;border:2px solid #4b5563;transition:all .2s"></div>
+  </div>
+  <div id="pinErr" style="color:#ffb4ab;font-size:12px;font-weight:600;height:18px"></div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:210px">
+    <button onclick="pp('1')" class="pin-k">1</button><button onclick="pp('2')" class="pin-k">2</button><button onclick="pp('3')" class="pin-k">3</button>
+    <button onclick="pp('4')" class="pin-k">4</button><button onclick="pp('5')" class="pin-k">5</button><button onclick="pp('6')" class="pin-k">6</button>
+    <button onclick="pp('7')" class="pin-k">7</button><button onclick="pp('8')" class="pin-k">8</button><button onclick="pp('9')" class="pin-k">9</button>
+    <div></div><button onclick="pp('0')" class="pin-k">0</button><button onclick="pdel()" class="pin-k" style="font-size:13px;color:#94a3b8">⌫</button>
+  </div>
+  <p style="color:#374151;font-size:12px">PIN: 1234</p>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app" style="display:none">
+
+<!-- SIDEBAR -->
+<aside style="position:fixed;left:0;top:0;height:100%;width:240px;display:flex;flex-direction:column;padding:24px;z-index:40;background:#0b1326;border-right:1px solid rgba(255,255,255,0.05);">
+  <div style="margin-bottom:32px">
+    <div style="font-size:18px;font-weight:900;letter-spacing:-.04em;color:#f1f5f9">PréstaTrack</div>
+    <div style="font-size:9px;text-transform:uppercase;letter-spacing:.25em;color:#475569;font-weight:700;margin-top:2px">USD Ledger</div>
+  </div>
+  <nav style="display:flex;flex-direction:column;gap:2px">
+    <div class="nav-link active" onclick="showTab('dashboard',this)"><span class="ms">dashboard</span><span>Dashboard</span></div>
+    <div class="nav-link" onclick="showTab('prestamos',this)"><span class="ms">payments</span><span>Préstamos</span></div>
+    <div class="nav-link" onclick="showTab('historial',this)"><span class="ms">history</span><span>Historial</span></div>
+    <div class="nav-link" onclick="showTab('analytics',this)"><span class="ms">analytics</span><span>Analytics</span></div>
+    <div class="nav-link" onclick="showTab('config',this)"><span class="ms">settings</span><span>Config</span></div>
+  </nav>
+  <!-- USD resumen rápido -->
+  <div style="margin-top:auto;padding:16px;background:#171f33;border-radius:12px;border:1px solid rgba(255,255,255,0.04)">
+    <div style="font-size:9px;text-transform:uppercase;letter-spacing:.15em;color:#64748b;font-weight:700;margin-bottom:10px">USD en la calle</div>
+    <div id="sideUSD" style="font-size:22px;font-weight:900;letter-spacing:-.03em;color:#4edea3">—</div>
+    <div id="sideTIR" style="font-size:10px;color:#64748b;margin-top:4px"></div>
+    <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.04)">
+      <div id="syncBadge" style="display:flex;align-items:center;gap:6px;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:#475569">
+        <span id="syncDot" style="width:7px;height:7px;border-radius:50%;background:#374151"></span>
+        <span id="syncTxt">Local</span>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- HEADER -->
+<header style="position:fixed;top:0;left:240px;right:0;z-index:30;height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;background:rgba(11,19,38,0.9);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.05);">
+  <div style="position:relative">
+    <span class="ms" style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:#475569;font-size:15px">search</span>
+    <input id="searchInput" oninput="doSearch()" type="text" placeholder="BUSCAR DEUDOR..." style="background:#131b2e;border:none;border-radius:999px;padding:7px 14px 7px 34px;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#cbd5e1;outline:none;width:220px;font-family:Inter,sans-serif;"/>
+  </div>
+  <div style="display:flex;align-items:center;gap:14px">
+    <div id="syncFull" style="display:none;align-items:center;gap:6px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#fbbf24">
+      <span style="width:7px;height:7px;border-radius:50%;background:#fbbf24;animation:pulse 1s infinite"></span>Guardando...
+    </div>
+    <span id="dateStr" style="color:#8892aa;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:600"></span>
+    <div style="width:1px;height:14px;background:rgba(255,255,255,0.08)"></div>
+    <button onclick="openModal()" style="background:#adc6ff;color:#002e6a;font-weight:700;padding:8px 18px;border-radius:10px;border:none;font-size:11px;cursor:pointer;display:flex;align-items:center;gap:5px;letter-spacing:.05em;text-transform:uppercase;font-family:Inter,sans-serif;transition:all .2s">
+      <span class="ms" style="font-size:15px">add</span>Nuevo Préstamo
+    </button>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main style="margin-left:240px;padding-top:60px;min-height:100vh">
+
+<!-- ── DASHBOARD ── -->
+<div id="tab-dashboard" class="tab active" style="padding:32px">
+  <div style="margin-bottom:4px">
+    <h2 style="font-size:22px;font-weight:800;letter-spacing:-.02em;color:#f1f5f9">Dashboard</h2>
+    <p id="dashSub" style="color:#8892aa;font-size:13px;margin-top:2px"></p>
+  </div>
+  <div id="kpiCards" style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:24px;margin-bottom:36px"></div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+    <div>
+      <h3 style="font-size:17px;font-weight:800;letter-spacing:-.01em;color:#f1f5f9">Cuotas de este mes</h3>
+      <p id="dashMonthLbl" style="color:#8892aa;font-size:12px;margin-top:2px"></p>
+    </div>
+  </div>
+  <div style="background:#171f33;border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,0.03)">
+    <table style="width:100%;border-collapse:collapse">
+      <thead><tr style="background:#222a3d">
+        <th class="th">Deudor</th><th class="th">Cuota $</th><th class="th">TC estimado</th><th class="th">USD estimado</th><th class="th">Vencimiento</th><th class="th">Estado</th><th class="th" style="text-align:right">Cobrar</th>
+      </tr></thead>
+      <tbody id="dashTbody"></tbody>
+    </table>
+    <div id="dashEmpty" style="display:none;text-align:center;padding:48px 20px;color:#475569">
+      <span class="ms" style="font-size:36px;opacity:.3;display:block;margin-bottom:10px">event_available</span>
+      <p style="font-size:14px;font-weight:600">Sin cuotas pendientes este mes</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── PRÉSTAMOS ── -->
+<div id="tab-prestamos" class="tab" style="padding:32px">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+    <div>
+      <h2 style="font-size:22px;font-weight:800;letter-spacing:-.02em;color:#f1f5f9">Préstamos</h2>
+      <p style="color:#8892aa;font-size:13px;margin-top:2px">Registro completo · rendimiento en USD</p>
+    </div>
+    <button onclick="openModal()" style="background:#adc6ff;color:#002e6a;font-weight:700;padding:9px 18px;border-radius:10px;border:none;font-size:11px;cursor:pointer;display:flex;align-items:center;gap:5px;text-transform:uppercase;letter-spacing:.05em;font-family:Inter,sans-serif">
+      <span class="ms" style="font-size:15px">add</span>Nuevo
+    </button>
+  </div>
+  <div id="filterBar" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px">
+    <button onclick="setFilter('todos',this)" class="fc active-fc">Todos</button>
+    <button onclick="setFilter('activo',this)" class="fc">Activos</button>
+    <button onclick="setFilter('atrasado',this)" class="fc">Atrasados</button>
+    <button onclick="setFilter('cancelado',this)" class="fc">Completados</button>
+  </div>
+  <div id="loansList"></div>
+  <div id="loansEmpty" style="display:none;text-align:center;padding:80px 20px;color:#475569">
+    <span class="ms" style="font-size:44px;opacity:.2;display:block;margin-bottom:10px">account_balance</span>
+    <p style="font-size:15px;font-weight:700;color:#64748b">Sin préstamos</p>
+  </div>
+</div>
+
+<!-- ── HISTORIAL ── -->
+<div id="tab-historial" class="tab" style="padding:32px">
+  <div style="margin-bottom:24px">
+    <h2 style="font-size:22px;font-weight:800;letter-spacing:-.02em;color:#f1f5f9">Historial de Cobros</h2>
+    <p style="color:#8892aa;font-size:13px;margin-top:2px">Pesos cobrados → USD recomprados</p>
+  </div>
+  <div style="background:#171f33;border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,0.03)">
+    <table style="width:100%;border-collapse:collapse">
+      <thead><tr style="background:#222a3d">
+        <th class="th">Deudor</th><th class="th">Cuota</th><th class="th">$ Cobrado</th><th class="th">TC real</th><th class="th">USD real</th><th class="th">USD estimado</th><th class="th">Dif USD</th><th class="th">Fecha</th>
+      </tr></thead>
+      <tbody id="histTbody"></tbody>
+    </table>
+    <div id="histEmpty" style="display:none;text-align:center;padding:48px 20px;color:#475569">
+      <span class="ms" style="font-size:36px;opacity:.3;display:block;margin-bottom:10px">history</span>
+      <p style="font-size:14px;font-weight:600">Sin cobros registrados</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── ANALYTICS ── -->
+<div id="tab-analytics" class="tab" style="padding:32px">
+  <div style="margin-bottom:24px">
+    <h2 style="font-size:22px;font-weight:800;letter-spacing:-.02em;color:#f1f5f9">Analytics USD</h2>
+    <p style="color:#8892aa;font-size:13px;margin-top:2px">Rentabilidad real de tu cartera</p>
+  </div>
+  <!-- TIR por préstamo -->
+  <div style="background:#171f33;border-radius:14px;padding:24px;border:1px solid rgba(255,255,255,0.03);margin-bottom:20px">
+    <p style="font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.2em;color:#8892aa;margin-bottom:16px">TIR en USD por préstamo</p>
+    <div id="tirTable"></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
+    <div style="background:#171f33;border-radius:14px;padding:24px;border:1px solid rgba(255,255,255,0.03)">
+      <p style="font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.2em;color:#8892aa;margin-bottom:16px">USD recuperado por mes</p>
+      <canvas id="chartUSD" height="200"></canvas>
+    </div>
+    <div style="background:#171f33;border-radius:14px;padding:24px;border:1px solid rgba(255,255,255,0.03)">
+      <p style="font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.2em;color:#8892aa;margin-bottom:16px">Capital en la calle vs recuperado</p>
+      <canvas id="chartCartera" height="200"></canvas>
+    </div>
+  </div>
+  <div style="background:#171f33;border-radius:14px;padding:24px;border:1px solid rgba(255,255,255,0.03)">
+    <p style="font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.2em;color:#8892aa;margin-bottom:16px">USD estimado vs real por mes (precisión de estimación Rofex)</p>
+    <canvas id="chartEstVsReal" height="110"></canvas>
+  </div>
+</div>
+
+<!-- ── CONFIG ── -->
+<div id="tab-config" class="tab" style="padding:32px">
+  <div style="margin-bottom:24px">
+    <h2 style="font-size:22px;font-weight:800;letter-spacing:-.02em;color:#f1f5f9">Configuración</h2>
+  </div>
+  <div style="max-width:520px;display:flex;flex-direction:column;gap:20px">
+    <div style="background:#171f33;border-radius:14px;padding:24px;border:1px solid rgba(255,255,255,0.03)">
+      <p style="font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.2em;color:#8892aa;margin-bottom:18px">Google Apps Script</p>
+      <label class="ml">URL del Web App</label>
+      <div style="display:flex;gap:10px">
+        <input id="gasUrl" type="text" placeholder="https://script.google.com/macros/s/.../exec" class="mi" style="flex:1"/>
+        <button onclick="saveGasUrl()" class="cfg-btn">Guardar</button>
+      </div>
+      <p id="gasStatus" style="font-size:11px;color:#475569;margin-top:8px">Sin conectar — datos guardados localmente</p>
+    </div>
+    <div style="background:#171f33;border-radius:14px;padding:24px;border:1px solid rgba(255,255,255,0.03)">
+      <p style="font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.2em;color:#8892aa;margin-bottom:18px">PIN de acceso</p>
+      <div style="display:flex;gap:10px;align-items:flex-end">
+        <div style="flex:1"><label class="ml">PIN actual</label><input id="pinActual" type="password" maxlength="4" class="mi"/></div>
+        <div style="flex:1"><label class="ml">PIN nuevo</label><input id="pinNuevo" type="password" maxlength="4" class="mi"/></div>
+        <button onclick="cambiarPin()" class="cfg-btn">Cambiar</button>
+      </div>
+      <p id="pinMsg" style="font-size:11px;margin-top:8px;height:16px"></p>
+    </div>
+    <div style="background:#171f33;border-radius:14px;padding:24px;border:1px solid rgba(255,255,255,0.03)">
+      <p style="font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.2em;color:#8892aa;margin-bottom:18px">Datos</p>
+      <div style="display:flex;gap:10px">
+        <button onclick="exportData()" class="cfg-btn">⬇ Exportar JSON</button>
+        <button onclick="document.getElementById('impFile').click()" class="cfg-btn">⬆ Importar JSON</button>
+        <input id="impFile" type="file" accept=".json" style="display:none" onchange="importData(event)"/>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+</div><!-- /app -->
+
+<!-- ══ MODAL NUEVO PRÉSTAMO ══ -->
+<div id="modalOverlay" style="display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:16px;overflow-y:auto">
+  <div style="background:#171f33;border:1px solid rgba(255,255,255,0.08);border-radius:20px;width:100%;max-width:580px;margin:auto;animation:slideUp .25s ease">
+    <div style="padding:28px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+        <h3 id="modalTitle" style="font-size:19px;font-weight:800;letter-spacing:-.02em;color:#f1f5f9">Nuevo Préstamo</h3>
+        <button onclick="closeModal()" style="background:none;border:none;color:#64748b;cursor:pointer;padding:4px"><span class="ms">close</span></button>
+      </div>
+
+      <!-- Fila 1: nombre + tc hoy -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+        <div style="grid-column:1/-1"><label class="ml">Nombre del deudor</label><input id="fNombre" type="text" placeholder="Ej: Andrea" oninput="calcModal()" class="mi"/></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px">
+        <div><label class="ml">Capital ($)</label><input id="fCapital" type="number" placeholder="1000000" oninput="calcModal()" class="mi"/></div>
+        <div><label class="ml">TC hoy ($/USD)</label><input id="fTcHoy" type="number" placeholder="1500" oninput="calcModal()" class="mi"/></div>
+        <div><label class="ml">USD invertidos</label><input id="fUsdInv" type="text" readonly class="mi" style="color:#4edea3;font-weight:700;background:#0d1a2e"/></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px">
+        <div><label class="ml">TNA (%)</label><input id="fTna" type="number" placeholder="75" step="0.5" oninput="calcModal()" class="mi"/></div>
+        <div><label class="ml">Cuotas</label><input id="fCuotas" type="number" placeholder="6" min="1" max="36" oninput="calcModal()" class="mi"/></div>
+        <div><label class="ml">Primera cuota</label><input id="fFecha" type="date" oninput="calcModal()" class="mi"/></div>
+      </div>
+      <div style="margin-bottom:14px"><label class="ml">Notas</label><input id="fNotas" type="text" placeholder="opcional" class="mi"/></div>
+
+      <!-- TC Rofex por cuota -->
+      <div id="rofexSection" style="display:none;margin-bottom:14px">
+        <label class="ml" style="color:#ffb95f">TC Rofex estimado por cuota (Matba Rofex)</label>
+        <div id="rofexInputs" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:6px"></div>
+      </div>
+
+      <!-- Preview cálculo -->
+      <div id="modalCalc" style="display:none;background:#131b2e;border-radius:12px;padding:16px;border:1px solid rgba(255,255,255,0.05);margin-bottom:16px">
+        <p style="font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.2em;color:#64748b;margin-bottom:12px">Proyección — Sistema Francés</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px">
+          <div style="display:flex;justify-content:space-between;padding:6px 10px;background:rgba(255,255,255,0.02);border-radius:8px"><span style="color:#8892aa">Cuota mensual</span><span id="mcCuota" style="font-weight:700;color:#adc6ff"></span></div>
+          <div style="display:flex;justify-content:space-between;padding:6px 10px;background:rgba(255,255,255,0.02);border-radius:8px"><span style="color:#8892aa">USD invertidos</span><span id="mcUsdInv" style="font-weight:700;color:#4edea3"></span></div>
+          <div style="display:flex;justify-content:space-between;padding:6px 10px;background:rgba(255,255,255,0.02);border-radius:8px"><span style="color:#8892aa">USD recuperado (est.)</span><span id="mcUsdRec" style="font-weight:700;color:#4edea3"></span></div>
+          <div style="display:flex;justify-content:space-between;padding:6px 10px;background:rgba(255,255,255,0.02);border-radius:8px"><span style="color:#8892aa">Ganancia USD (est.)</span><span id="mcGanUsd" style="font-weight:700;color:#fbbf24"></span></div>
+          <div style="display:flex;justify-content:space-between;padding:6px 10px;background:rgba(255,255,255,0.02);border-radius:8px;grid-column:1/-1"><span style="color:#f1f5f9;font-weight:700">TIR en USD (anual est.)</span><span id="mcTir" style="font-weight:900;font-size:15px;color:#4edea3"></span></div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <button onclick="closeModal()" style="background:#222a3d;color:#94a3b8;border:1px solid rgba(255,255,255,0.06);padding:10px 22px;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.08em;font-family:Inter,sans-serif">Cancelar</button>
+        <button onclick="guardar()" style="background:#adc6ff;color:#002e6a;border:none;padding:10px 22px;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.08em;font-family:Inter,sans-serif">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL COBRAR CUOTA ══ -->
+<div id="pagoOverlay" style="display:none;position:fixed;inset:0;z-index:110;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:16px">
+  <div style="background:#171f33;border:1px solid rgba(255,255,255,0.08);border-radius:20px;width:100%;max-width:420px;animation:slideUp .25s ease">
+    <div style="padding:28px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <h3 style="font-size:17px;font-weight:800;color:#f1f5f9" id="pagoTitle">Registrar cobro</h3>
+        <button onclick="closePago()" style="background:none;border:none;color:#64748b;cursor:pointer"><span class="ms">close</span></button>
+      </div>
+      <div id="pagoInfo" style="background:#131b2e;border-radius:10px;padding:14px;margin-bottom:16px;font-size:13px"></div>
+      <div style="margin-bottom:14px">
+        <label class="ml">TC real del día ($/USD)</label>
+        <input id="pagoTc" type="number" placeholder="ej: 1520" oninput="calcPago()" class="mi"/>
+      </div>
+      <div id="pagoCalc" style="display:none;background:#131b2e;border-radius:10px;padding:14px;margin-bottom:16px;font-size:13px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="color:#8892aa">Pesos cobrados</span><span id="pcPesos" style="font-weight:700;color:#adc6ff"></span></div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="color:#8892aa">USD recomprados</span><span id="pcUsd" style="font-weight:700;color:#4edea3"></span></div>
+        <div style="display:flex;justify-content:space-between"><span style="color:#8892aa">USD estimado era</span><span id="pcUsdEst" style="font-weight:700;color:#64748b"></span></div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <button onclick="closePago()" style="background:#222a3d;color:#94a3b8;border:none;padding:10px 20px;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">Cancelar</button>
+        <button onclick="confirmarPago()" style="background:#4edea3;color:#003824;border:none;padding:10px 20px;border-radius:10px;font-size:11px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">Confirmar cobro</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FAB -->
+<button onclick="openModal()" style="position:fixed;bottom:28px;right:28px;width:52px;height:52px;background:#4edea3;border-radius:50%;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 8px 28px rgba(78,222,163,0.3);transition:all .2s;z-index:50" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+  <span class="ms" style="font-size:22px;color:#003824">add</span>
+</button>
+
+<script>
+// ══════════════════════════════════════════════
+//  MATH
+// ══════════════════════════════════════════════
+function french(capital, tnaPct, n) {
+  const r = (tnaPct / 100) / 12;
+  const cuota = r === 0 ? capital / n : capital * (r * Math.pow(1+r,n)) / (Math.pow(1+r,n)-1);
+  const sched = []; let saldo = capital;
+  for (let i = 1; i <= n; i++) {
+    const int = saldo * r; const cap = cuota - int;
+    saldo = Math.max(0, saldo - cap);
+    sched.push({ n: i, cuota: round2(cuota), capital: round2(cap), interes: round2(int), saldo: round2(saldo) });
+  }
+  return { cuota: round2(cuota), sched };
+}
+
+function tirAnual(usdInvertido, cuotas) {
+  // cuotas: [{usd}] monthly cash flows
+  // flujos: [-usdInvertido, usd1, usd2, ...]
+  const flujos = [-usdInvertido, ...cuotas.map(c => c.usdEst || 0)];
+  if (flujos.slice(1).every(f => f === 0)) return null;
+  let r = 0.05;
+  for (let iter = 0; iter < 500; iter++) {
+    let f = 0, df = 0;
+    flujos.forEach((v, t) => { f += v / Math.pow(1+r, t); df -= t * v / Math.pow(1+r, t+1); });
+    if (Math.abs(df) < 1e-12) break;
+    const nr = r - f / df;
+    if (Math.abs(nr - r) < 1e-10) { r = nr; break; }
+    r = nr;
+  }
+  return Math.pow(1 + r, 12) - 1; // anualizar
+}
+
+function round2(n) { return Math.round(n * 100) / 100; }
+
+// ══════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════
+let S = { pin: '1234', gasUrl: '', prestamos: [], historial: [] };
+let editId = null, curFilter = 'todos', pinBuf = '', pinFails = 0, charts = {};
+let pagoData = null; // { prestamoId, cuotaIdx }
+
+function save() { localStorage.setItem('pt3', JSON.stringify(S)); }
+function load() { try { const r = localStorage.getItem('pt3'); if (r) { const d = JSON.parse(r); S = { ...S, ...d }; } } catch(e) {} }
+
+// ══════════════════════════════════════════════
+//  DATA INICIAL — tus 7 préstamos
+// ══════════════════════════════════════════════
+function buildInitialData() {
+  if (S.prestamos.length > 0) return; // ya existe data
+
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+  // Helper: fecha ISO a partir de mes/año
+  const fecha = (y, m, d = 1) => `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+
+  // ── 1. MONI (1) — COMPLETADO ──
+  // $1.000.000 · TC 1397 · 75% TNA · 6 cuotas · Inicio feb 2026
+  const p1id = uid();
+  const m1 = french(1000000, 75, 6);
+  const tcsM1 = [1426, 1506, 1455, 1466, 1465, 1395];
+  const cuotasM1 = m1.sched.map((s, i) => ({
+    n: s.n, fecha: fecha(2026, 2 + i), monto: s.cuota,
+    capital: s.capital, interes: s.interes, saldo: s.saldo,
+    tcRofex: tcsM1[i], usdEst: round2(s.cuota / tcsM1[i]),
+    pagada: true, fechaPago: fecha(2026, 2 + i, 5),
+    tcReal: tcsM1[i], usdReal: round2(s.cuota / tcsM1[i]),
+  }));
+  const usdRealM1 = cuotasM1.reduce((s, c) => s + c.usdReal, 0);
+  S.prestamos.push({ id: p1id, nombre: 'Moni', capital: 1000000, tcHoy: 1397, usdInvertidos: round2(1000000/1397), tna: 75, numCuotas: 6, fechaInicio: fecha(2026,2), notas: '', cuota: m1.cuota, cuotas: cuotasM1, estado: 'cancelado', creado: fecha(2026,1,25) });
+  cuotasM1.forEach(c => {
+    S.historial.push({ id: uid(), prestamoId: p1id, nombre: 'Moni', cuotaN: c.n, monto: c.monto, tcReal: c.tcReal, usdReal: c.usdReal, usdEst: c.usdEst, fecha: c.fechaPago });
+  });
+
+  // ── 2. ANDREA (1) — EN CURSO, pago parcial c3 ──
+  // $1.000.000 · TC 1495 · 85% TNA · 4 cuotas
+  // c1 pagada TC 1496, c2 pagada TC 1445, c3 pagó 200k (parcial), c4 refinanciada
+  const p2id = uid();
+  const a1 = french(1000000, 85, 4);
+  const r85 = (85/100)/12;
+  // saldo real tras pago parcial cuota 3
+  const saldoTrasC2 = a1.sched[1].saldo;
+  const intC3 = round2(saldoTrasC2 * r85);
+  const capPagadoC3 = round2(200000 - intC3);
+  const saldoTrasC3 = round2(saldoTrasC2 - capPagadoC3);
+  const cuota4Ref = round2(saldoTrasC3 * (1 + r85));
+  const cuotasA1 = [
+    { n:1, fecha:fecha(2026,2), monto:a1.sched[0].cuota, capital:a1.sched[0].capital, interes:a1.sched[0].interes, saldo:a1.sched[0].saldo, tcRofex:1496, usdEst:round2(a1.sched[0].cuota/1496), pagada:true, fechaPago:fecha(2026,2,5), tcReal:1496, usdReal:round2(a1.sched[0].cuota/1496) },
+    { n:2, fecha:fecha(2026,3), monto:a1.sched[1].cuota, capital:a1.sched[1].capital, interes:a1.sched[1].interes, saldo:a1.sched[1].saldo, tcRofex:1445, usdEst:round2(a1.sched[1].cuota/1445), pagada:true, fechaPago:fecha(2026,3,5), tcReal:1445, usdReal:round2(a1.sched[1].cuota/1445) },
+    { n:3, fecha:fecha(2026,3,20), monto:200000, capital:capPagadoC3, interes:intC3, saldo:saldoTrasC3, tcRofex:1410, usdEst:round2(200000/1410), pagada:true, fechaPago:fecha(2026,3,20), tcReal:1410, usdReal:round2(200000/1410), nota:'Pago parcial — refinanciada' },
+    { n:4, fecha:fecha(2026,4), monto:cuota4Ref, capital:saldoTrasC3, interes:round2(saldoTrasC3*r85), saldo:0, tcRofex:null, usdEst:null, pagada:false, fechaPago:null, tcReal:null, usdReal:null, nota:'Refinanciada (saldo + interés)' },
+  ];
+  S.prestamos.push({ id: p2id, nombre: 'Andrea', capital: 1000000, tcHoy: 1495, usdInvertidos: round2(1000000/1495), tna: 85, numCuotas: 4, fechaInicio: fecha(2026,2), notas: 'C3 pago parcial $200k — refinanciada', cuota: a1.cuota, cuotas: cuotasA1, estado: 'atrasado', creado: fecha(2026,1,25) });
+  [cuotasA1[0], cuotasA1[1], cuotasA1[2]].forEach(c => {
+    S.historial.push({ id: uid(), prestamoId: p2id, nombre: 'Andrea', cuotaN: c.n, monto: c.monto, tcReal: c.tcReal, usdReal: c.usdReal, usdEst: c.usdEst, fecha: c.fechaPago });
+  });
+
+  // ── 3. MONI (2) — COMPLETADO (compra directa) ──
+  const p3id = uid();
+  const cuotaM2 = 520000;
+  const usdEstM2 = round2(500000/1495);
+  const usdRealM2 = round2(520000/1466);
+  S.prestamos.push({ id: p3id, nombre: 'Moni (2)', capital: 500000, tcHoy: 1495, usdInvertidos: round2(500000/1495), tna: 0, numCuotas: 1, fechaInicio: fecha(2026,2), notas: 'Compra directa — cobro único $520k', cuota: cuotaM2, cuotas: [
+    { n:1, fecha:fecha(2026,2), monto:cuotaM2, capital:cuotaM2, interes:0, saldo:0, tcRofex:1466, usdEst:round2(520000/1466), pagada:true, fechaPago:fecha(2026,2,10), tcReal:1466, usdReal:round2(520000/1466) }
+  ], estado: 'cancelado', creado: fecha(2026,2,1) });
+  S.historial.push({ id: uid(), prestamoId: p3id, nombre: 'Moni (2)', cuotaN: 1, monto: cuotaM2, tcReal: 1466, usdReal: usdRealM2, usdEst: usdEstM2, fecha: fecha(2026,2,10) });
+
+  // ── 4. MONI (3) — 2/12 pagadas ──
+  const p4id = uid();
+  const m3 = french(2000000, 68, 12);
+  const tcsM3 = [1448, 1410];
+  const cuotasM3 = m3.sched.map((s, i) => ({
+    n: s.n, fecha: fecha(2026, 2 + i), monto: s.cuota,
+    capital: s.capital, interes: s.interes, saldo: s.saldo,
+    tcRofex: i < 2 ? tcsM3[i] : null, usdEst: i < 2 ? round2(s.cuota / tcsM3[i]) : null,
+    pagada: i < 2, fechaPago: i < 2 ? fecha(2026, 2 + i, 5) : null,
+    tcReal: i < 2 ? tcsM3[i] : null, usdReal: i < 2 ? round2(s.cuota / tcsM3[i]) : null,
+  }));
+  S.prestamos.push({ id: p4id, nombre: 'Moni (3)', capital: 2000000, tcHoy: 1538, usdInvertidos: round2(2000000/1538), tna: 68, numCuotas: 12, fechaInicio: fecha(2026,2), notas: '', cuota: m3.cuota, cuotas: cuotasM3, estado: 'activo', creado: fecha(2026,1,28) });
+  cuotasM3.filter(c => c.pagada).forEach(c => {
+    S.historial.push({ id: uid(), prestamoId: p4id, nombre: 'Moni (3)', cuotaN: c.n, monto: c.monto, tcReal: c.tcReal, usdReal: c.usdReal, usdEst: c.usdEst, fecha: c.fechaPago });
+  });
+
+  // ── 5. MA — por cobrar ──
+  const p5id = uid();
+  const ma = french(350000, 70, 4);
+  const cuotasMA = ma.sched.map((s, i) => ({
+    n: s.n, fecha: fecha(2026, 4 + i), monto: s.cuota,
+    capital: s.capital, interes: s.interes, saldo: s.saldo,
+    tcRofex: null, usdEst: null,
+    pagada: false, fechaPago: null, tcReal: null, usdReal: null,
+  }));
+  S.prestamos.push({ id: p5id, nombre: 'MA', capital: 350000, tcHoy: 1440, usdInvertidos: round2(350000/1440), tna: 70, numCuotas: 4, fechaInicio: fecha(2026,4), notas: '', cuota: ma.cuota, cuotas: cuotasMA, estado: 'activo', creado: fecha(2026,3,20) });
+
+  // ── 6. MATÍAS C — por cobrar ──
+  const p6id = uid();
+  const mc = french(465000, 70, 5);
+  const cuotasMC = mc.sched.map((s, i) => ({
+    n: s.n, fecha: fecha(2026, 4 + i), monto: s.cuota,
+    capital: s.capital, interes: s.interes, saldo: s.saldo,
+    tcRofex: null, usdEst: null,
+    pagada: false, fechaPago: null, tcReal: null, usdReal: null,
+  }));
+  S.prestamos.push({ id: p6id, nombre: 'Matías C', capital: 465000, tcHoy: 1463, usdInvertidos: round2(465000/1463), tna: 70, numCuotas: 5, fechaInicio: fecha(2026,4), notas: '', cuota: mc.cuota, cuotas: cuotasMC, estado: 'activo', creado: fecha(2026,3,20) });
+
+  // ── 7. ANDREA (2) — por cobrar ──
+  const p7id = uid();
+  const a2 = french(200000, 80, 1);
+  const cuotasA2 = [{
+    n: 1, fecha: fecha(2026,4), monto: a2.cuota,
+    capital: a2.sched[0].capital, interes: a2.sched[0].interes, saldo: 0,
+    tcRofex: null, usdEst: null,
+    pagada: false, fechaPago: null, tcReal: null, usdReal: null,
+  }];
+  S.prestamos.push({ id: p7id, nombre: 'Andrea (2)', capital: 200000, tcHoy: 1460, usdInvertidos: round2(200000/1460), tna: 80, numCuotas: 1, fechaInicio: fecha(2026,4), notas: 'Cuota única', cuota: a2.cuota, cuotas: cuotasA2, estado: 'activo', creado: fecha(2026,3,20) });
+
+  save();
+}
+
+// ══════════════════════════════════════════════
+//  PIN
+// ══════════════════════════════════════════════
+function pp(d) {
+  if (pinFails >= 5) return;
+  pinBuf += d; upDots();
+  if (pinBuf.length === 4) setTimeout(() => {
+    if (pinBuf === S.pin) { document.getElementById('lockScreen').style.display = 'none'; document.getElementById('app').style.display = 'block'; renderAll(); }
+    else { pinFails++; document.getElementById('pinErr').textContent = pinFails >= 5 ? 'Bloqueado. Recargá la página.' : `PIN incorrecto (${5-pinFails} intentos)`; pinBuf = ''; upDots(); }
+  }, 200);
+}
+function pdel() { pinBuf = pinBuf.slice(0,-1); upDots(); }
+function upDots() { for (let i = 0; i < 4; i++) { const d = document.getElementById('pd'+i); d.style.background = i < pinBuf.length ? '#adc6ff' : 'transparent'; d.style.borderColor = i < pinBuf.length ? '#adc6ff' : '#4b5563'; } }
+document.addEventListener('keydown', e => { if (document.getElementById('lockScreen').style.display !== 'none') { if (e.key >= '0' && e.key <= '9') pp(e.key); if (e.key === 'Backspace') pdel(); } });
+
+// ══════════════════════════════════════════════
+//  TABS & DATE
+// ══════════════════════════════════════════════
+const MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const DAYS = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+function setDate() { const d = new Date(); document.getElementById('dateStr').textContent = `${DAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]}`; }
+setDate();
+
+function showTab(id, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  if (el) el.classList.add('active');
+  if (id === 'analytics') renderCharts();
+  if (id === 'historial') renderHistorial();
+  if (id === 'config') document.getElementById('gasUrl').value = S.gasUrl || '';
+}
+
+// ══════════════════════════════════════════════
+//  MODAL NUEVO PRÉSTAMO
+// ══════════════════════════════════════════════
+function openModal(id = null) {
+  editId = id;
+  document.getElementById('modalTitle').textContent = id ? 'Editar Préstamo' : 'Nuevo Préstamo';
+  if (id) {
+    const p = S.prestamos.find(x => x.id === id);
+    document.getElementById('fNombre').value = p.nombre;
+    document.getElementById('fCapital').value = p.capital;
+    document.getElementById('fTcHoy').value = p.tcHoy;
+    document.getElementById('fTna').value = p.tna;
+    document.getElementById('fCuotas').value = p.numCuotas;
+    document.getElementById('fFecha').value = p.fechaInicio;
+    document.getElementById('fNotas').value = p.notas || '';
+  } else {
+    ['fNombre','fCapital','fTcHoy','fTna','fCuotas','fNotas'].forEach(i => document.getElementById(i).value = '');
+    document.getElementById('fFecha').value = todayStr();
+    document.getElementById('fUsdInv').value = '';
+    document.getElementById('modalCalc').style.display = 'none';
+    document.getElementById('rofexSection').style.display = 'none';
+  }
+  calcModal();
+  document.getElementById('modalOverlay').style.display = 'flex';
+}
+function closeModal() { document.getElementById('modalOverlay').style.display = 'none'; editId = null; }
+document.getElementById('modalOverlay').addEventListener('click', e => { if (e.target === document.getElementById('modalOverlay')) closeModal(); });
+
+function calcModal() {
+  const cap = parseFloat(document.getElementById('fCapital').value);
+  const tc = parseFloat(document.getElementById('fTcHoy').value);
+  const tna = parseFloat(document.getElementById('fTna').value) || 0;
+  const n = parseInt(document.getElementById('fCuotas').value);
+
+  if (tc && cap) {
+    const usd = round2(cap / tc);
+    document.getElementById('fUsdInv').value = 'U$S ' + fmt(usd);
+  }
+
+  if (!cap || !n) { document.getElementById('modalCalc').style.display = 'none'; document.getElementById('rofexSection').style.display = 'none'; return; }
+
+  const { cuota, sched } = french(cap, tna, n);
+
+  // Rofex inputs
+  const rofexDiv = document.getElementById('rofexInputs');
+  const existing = [];
+  rofexDiv.querySelectorAll('input').forEach(i => existing.push(i.value));
+  if (rofexDiv.children.length !== n) {
+    rofexDiv.style.gridTemplateColumns = `repeat(${Math.min(n, 4)}, 1fr)`;
+    rofexDiv.innerHTML = '';
+    for (let i = 0; i < n; i++) {
+      const wrap = document.createElement('div');
+      wrap.innerHTML = `<label class="ml" style="font-size:9px">MES ${i+1}</label><input type="number" class="mi rofex-inp" placeholder="ej: 1520" value="${existing[i]||''}" oninput="calcModal()" style="font-size:12px;padding:8px 10px"/>`;
+      rofexDiv.appendChild(wrap);
+    }
+  }
+  document.getElementById('rofexSection').style.display = 'block';
+
+  // Calc preview con rofex
+  const rofexVals = [...document.querySelectorAll('.rofex-inp')].map(i => parseFloat(i.value) || null);
+  const usdPorCuota = sched.map((s, i) => rofexVals[i] ? round2(s.cuota / rofexVals[i]) : null);
+  const totalUsdRec = usdPorCuota.filter(Boolean).reduce((s, v) => s + v, 0);
+  const usdInv = tc ? round2(cap / tc) : null;
+
+  document.getElementById('mcCuota').textContent = '$ ' + fmt(cuota);
+  document.getElementById('mcUsdInv').textContent = usdInv ? 'U$S ' + fmt(usdInv) : '—';
+  document.getElementById('mcUsdRec').textContent = totalUsdRec > 0 ? 'U$S ' + fmt(totalUsdRec) : '— (ingresá TC Rofex)';
+  document.getElementById('mcGanUsd').textContent = (usdInv && totalUsdRec > 0) ? 'U$S ' + fmt(totalUsdRec - usdInv) : '—';
+
+  // TIR
+  if (usdInv && usdPorCuota.every(Boolean)) {
+    const tir = tirAnual(usdInv, sched.map((s, i) => ({ usdEst: usdPorCuota[i] })));
+    document.getElementById('mcTir').textContent = tir !== null ? (tir * 100).toFixed(1) + '% anual USD' : '—';
+    document.getElementById('mcTir').style.color = tir > 0.2 ? '#4edea3' : '#fbbf24';
+  } else {
+    document.getElementById('mcTir').textContent = '— (completá TC Rofex)';
+  }
+
+  document.getElementById('modalCalc').style.display = 'block';
+}
+
+function guardar() {
+  const nombre = document.getElementById('fNombre').value.trim();
+  const capital = parseFloat(document.getElementById('fCapital').value);
+  const tcHoy = parseFloat(document.getElementById('fTcHoy').value);
+  const tna = parseFloat(document.getElementById('fTna').value) || 0;
+  const numCuotas = parseInt(document.getElementById('fCuotas').value);
+  const fechaInicio = document.getElementById('fFecha').value;
+  const notas = document.getElementById('fNotas').value.trim();
+  if (!nombre || !capital || !tcHoy || !numCuotas || !fechaInicio) { alert('Completá: nombre, capital, TC, cuotas y fecha.'); return; }
+
+  const { cuota, sched } = french(capital, tna, numCuotas);
+  const rofexVals = [...document.querySelectorAll('.rofex-inp')].map(i => parseFloat(i.value) || null);
+  const usdInvertidos = round2(capital / tcHoy);
+
+  const cuotas = sched.map((s, i) => ({
+    n: s.n, fecha: addMonths(fechaInicio, i), monto: s.cuota,
+    capital: s.capital, interes: s.interes, saldo: s.saldo,
+    tcRofex: rofexVals[i] || null,
+    usdEst: rofexVals[i] ? round2(s.cuota / rofexVals[i]) : null,
+    pagada: false, fechaPago: null, tcReal: null, usdReal: null,
+  }));
+
+  if (editId) {
+    const idx = S.prestamos.findIndex(x => x.id === editId);
+    const prev = S.prestamos[idx];
+    cuotas.forEach(c => { const p = prev.cuotas.find(x => x.n === c.n); if (p) { c.pagada = p.pagada; c.fechaPago = p.fechaPago; c.tcReal = p.tcReal; c.usdReal = p.usdReal; } });
+    S.prestamos[idx] = { ...prev, nombre, capital, tcHoy, usdInvertidos, tna, numCuotas, fechaInicio, notas, cuota, cuotas };
+  } else {
+    S.prestamos.push({ id: uid(), nombre, capital, tcHoy, usdInvertidos, tna, numCuotas, fechaInicio, notas, cuota, cuotas, estado: 'activo', creado: new Date().toISOString() });
+  }
+  save(); closeModal(); renderAll(); syncData();
+}
+
+// ══════════════════════════════════════════════
+//  MODAL PAGO
+// ══════════════════════════════════════════════
+function openPago(pid, cidx) {
+  const p = S.prestamos.find(x => x.id === pid);
+  const c = p.cuotas[cidx];
+  pagoData = { pid, cidx };
+  document.getElementById('pagoTitle').textContent = `Cobrar — ${p.nombre} Cuota #${c.n}`;
+  document.getElementById('pagoInfo').innerHTML = `
+    <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="color:#8892aa">Monto a cobrar</span><span style="font-weight:700;color:#adc6ff">$ ${fmt(c.monto)}</span></div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="color:#8892aa">Capital</span><span style="color:#f1f5f9">$ ${fmt(c.capital)}</span></div>
+    <div style="display:flex;justify-content:space-between"><span style="color:#8892aa">Interés</span><span style="color:#fbbf24">$ ${fmt(c.interes)}</span></div>
+    ${c.tcRofex ? `<div style="display:flex;justify-content:space-between;margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.05)"><span style="color:#8892aa">TC Rofex estimado</span><span style="color:#64748b">$${c.tcRofex} → U$S ${fmt(c.usdEst)}</span></div>` : ''}
+    ${c.nota ? `<div style="margin-top:6px;font-size:11px;color:#fbbf24">⚠ ${c.nota}</div>` : ''}`;
+  document.getElementById('pagoTc').value = '';
+  document.getElementById('pagoCalc').style.display = 'none';
+  document.getElementById('pagoOverlay').style.display = 'flex';
+}
+function closePago() { document.getElementById('pagoOverlay').style.display = 'none'; pagoData = null; }
+document.getElementById('pagoOverlay').addEventListener('click', e => { if (e.target === document.getElementById('pagoOverlay')) closePago(); });
+
+function calcPago() {
+  if (!pagoData) return;
+  const p = S.prestamos.find(x => x.id === pagoData.pid);
+  const c = p.cuotas[pagoData.cidx];
+  const tc = parseFloat(document.getElementById('pagoTc').value);
+  if (!tc) { document.getElementById('pagoCalc').style.display = 'none'; return; }
+  const usdReal = round2(c.monto / tc);
+  document.getElementById('pcPesos').textContent = '$ ' + fmt(c.monto);
+  document.getElementById('pcUsd').textContent = 'U$S ' + fmt(usdReal);
+  document.getElementById('pcUsdEst').textContent = c.usdEst ? 'U$S ' + fmt(c.usdEst) : '—';
+  document.getElementById('pagoCalc').style.display = 'block';
+}
+
+function confirmarPago() {
+  if (!pagoData) return;
+  const tc = parseFloat(document.getElementById('pagoTc').value);
+  if (!tc) { alert('Ingresá el TC real del día.'); return; }
+  const p = S.prestamos.find(x => x.id === pagoData.pid);
+  const c = p.cuotas[pagoData.cidx];
+  c.pagada = true; c.fechaPago = todayStr(); c.tcReal = tc; c.usdReal = round2(c.monto / tc);
+  p.estado = getEstado(p);
+  S.historial.unshift({ id: uid(), prestamoId: p.id, nombre: p.nombre, cuotaN: c.n, monto: c.monto, tcReal: tc, usdReal: c.usdReal, usdEst: c.usdEst, fecha: c.fechaPago });
+  save(); closePago(); renderAll(); syncData();
+}
+
+// ══════════════════════════════════════════════
+//  LOGIC
+// ══════════════════════════════════════════════
+function getEstado(p) {
+  if (p.cuotas.every(c => c.pagada)) return 'cancelado';
+  const hoy = todayStr();
+  if (p.cuotas.some(c => !c.pagada && c.fecha < hoy)) return 'atrasado';
+  return 'activo';
+}
+function getSaldo(p) { return p.cuotas.filter(c => !c.pagada).reduce((s, c) => s + c.monto, 0); }
+function getUsdPendiente(p) { return p.cuotas.filter(c => !c.pagada && c.usdEst).reduce((s, c) => s + c.usdEst, 0); }
+function getTirPrestamo(p) {
+  const cuotasConUsd = p.cuotas.filter(c => c.usdEst);
+  if (cuotasConUsd.length === 0) return null;
+  return tirAnual(p.usdInvertidos, p.cuotas.map(c => ({ usdEst: c.usdEst || 0 })));
+}
+function getUsdRecuperado(p) { return p.cuotas.filter(c => c.usdReal).reduce((s, c) => s + c.usdReal, 0); }
+
+// ══════════════════════════════════════════════
+//  RENDER ALL
+// ══════════════════════════════════════════════
+function renderAll() {
+  S.prestamos.forEach(p => p.estado = getEstado(p));
+  renderDashboard();
+  renderPrestamos();
+  updateSidebar();
+}
+
+function updateSidebar() {
+  const activos = S.prestamos.filter(p => p.estado !== 'cancelado');
+  const usdEnCalle = activos.reduce((s, p) => s + p.usdInvertidos - getUsdRecuperado(p), 0);
+  document.getElementById('sideUSD').textContent = 'U$S ' + fmt(Math.max(0, usdEnCalle));
+  const prestConTir = activos.filter(p => getTirPrestamo(p) !== null);
+  if (prestConTir.length > 0) {
+    const tirProm = prestConTir.reduce((s, p) => s + getTirPrestamo(p), 0) / prestConTir.length;
+    document.getElementById('sideTIR').textContent = `TIR prom: ${(tirProm*100).toFixed(1)}% anual USD`;
+  }
+}
+
+// ══════════════════════════════════════════════
+//  DASHBOARD
+// ══════════════════════════════════════════════
+function renderDashboard() {
+  const hoy = todayStr(), mes = hoy.slice(0,7);
+  const activos = S.prestamos.filter(p => p.estado !== 'cancelado');
+  const usdEnCalle = activos.reduce((s, p) => s + p.usdInvertidos - getUsdRecuperado(p), 0);
+  const usdACobrasMes = S.prestamos.flatMap(p => p.cuotas.filter(c => !c.pagada && c.fecha.startsWith(mes) && c.usdEst)).reduce((s, c) => s + c.usdEst, 0);
+  const pesosACobrasMes = S.prestamos.flatMap(p => p.cuotas.filter(c => !c.pagada && c.fecha.startsWith(mes))).reduce((s, c) => s + c.monto, 0);
+  const atrasados = S.prestamos.filter(p => p.estado === 'atrasado').length;
+  const usdTotalGanado = S.historial.reduce((s, h) => s + (h.usdReal || 0), 0);
+  const usdTotalInvertido = S.prestamos.reduce((s, p) => s + p.usdInvertidos, 0);
+
+  document.getElementById('dashSub').textContent = `${activos.length} préstamo${activos.length !== 1 ? 's' : ''} activo${activos.length !== 1 ? 's' : ''} · ${S.prestamos.filter(p=>p.estado==='cancelado').length} completados`;
+  document.getElementById('dashMonthLbl').textContent = `${MONTHS[new Date().getMonth()]} ${new Date().getFullYear()}`;
+
+  document.getElementById('kpiCards').innerHTML = `
+    <div style="background:#171f33;padding:24px;border-radius:14px;border:1px solid rgba(255,255,255,0.03)" onmouseover="this.style.transform='scale(1.01)'" onmouseout="this.style.transform='scale(1)'" style2="transition:transform .2s">
+      <p style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.2em;color:#8892aa;margin-bottom:12px">USD en la calle</p>
+      <div style="font-size:26px;font-weight:900;letter-spacing:-.04em;color:#4edea3">U$S ${fmt(Math.max(0,usdEnCalle))}</div>
+      <div style="font-size:10px;color:#475569;margin-top:4px">${activos.length} préstamos activos</div>
+    </div>
+    <div style="background:#171f33;padding:24px;border-radius:14px;border:1px solid rgba(255,255,255,0.03)">
+      <p style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.2em;color:#8892aa;margin-bottom:12px">A cobrar este mes</p>
+      <div style="font-size:22px;font-weight:900;letter-spacing:-.03em;color:#adc6ff">$ ${fmt(pesosACobrasMes)}</div>
+      ${usdACobrasMes > 0 ? `<div style="font-size:14px;font-weight:700;color:#4edea3;margin-top:4px">≈ U$S ${fmt(usdACobrasMes)} est.</div>` : ''}
+    </div>
+    <div style="background:#171f33;padding:24px;border-radius:14px;border:1px solid rgba(255,255,255,0.03)">
+      <p style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.2em;color:#8892aa;margin-bottom:12px">Riesgo</p>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:38px;font-weight:900;color:${atrasados>0?'#ffb4ab':'#4edea3'}">${atrasados}</span>
+        <span class="badge" style="background:${atrasados>0?'rgba(255,180,171,0.1)':'rgba(78,222,163,0.1)'};color:${atrasados>0?'#ffb4ab':'#4edea3'}">${atrasados>0?'Atrasados':'Al día'}</span>
+      </div>
+    </div>
+    <div style="background:#171f33;padding:24px;border-radius:14px;border:1px solid rgba(255,255,255,0.03)">
+      <p style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.2em;color:#8892aa;margin-bottom:12px">USD total recuperado</p>
+      <div style="font-size:22px;font-weight:900;letter-spacing:-.03em;color:#4edea3">U$S ${fmt(usdTotalGanado)}</div>
+      <div style="font-size:10px;color:#475569;margin-top:4px">de U$S ${fmt(usdTotalInvertido)} invertidos</div>
+    </div>`;
+
+  const cuotasMes = S.prestamos.flatMap(p => p.cuotas.filter(c => !c.pagada && c.fecha.startsWith(mes)).map(c => ({ ...c, pN: p.nombre, pId: p.id, cidx: c.n-1 }))).sort((a, b) => a.fecha.localeCompare(b.fecha));
+  const tbody = document.getElementById('dashTbody'), empty = document.getElementById('dashEmpty');
+  if (!cuotasMes.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  tbody.innerHTML = cuotasMes.map(c => {
+    const late = c.fecha < hoy;
+    return `<tr onmouseover="this.style.background='rgba(255,255,255,0.01)'" onmouseout="this.style.background=''" style="transition:background .1s">
+      <td class="td"><div style="display:flex;align-items:center;gap:10px"><div style="width:30px;height:30px;border-radius:8px;background:${late?'rgba(255,180,171,0.1)':'rgba(173,198,255,0.1)'};display:flex;align-items:center;justify-content:center;color:${late?'#ffb4ab':'#adc6ff'}"><span class="ms" style="font-size:14px">${late?'warning':'person'}</span></div><span style="font-weight:700;color:#f1f5f9">${c.pN}</span></div></td>
+      <td class="td"><div style="font-weight:700;color:#adc6ff">$ ${fmt(c.monto)}</div><div style="font-size:10px;color:#64748b">Cuota #${c.n}</div></td>
+      <td class="td" style="color:#64748b;font-size:13px">${c.tcRofex ? '$ '+c.tcRofex : '<span style="color:#374151">— sin cargar</span>'}</td>
+      <td class="td" style="font-weight:700;color:#4edea3">${c.usdEst ? 'U$S '+fmt(c.usdEst) : '<span style="color:#374151">—</span>'}</td>
+      <td class="td" style="color:${late?'#ffb4ab':'#f1f5f9'};font-weight:600">${formatDate(c.fecha)}</td>
+      <td class="td"><span class="badge" style="background:${late?'rgba(255,180,171,0.1)':'rgba(173,198,255,0.1)'};color:${late?'#ffb4ab':'#adc6ff'}">${late?'Atrasado':'Pendiente'}</span></td>
+      <td class="td" style="text-align:right"><button onclick="openPago('${c.pId}',${c.cidx})" style="background:rgba(78,222,163,0.1);color:#4edea3;border:none;padding:7px 14px;border-radius:8px;font-size:10px;font-weight:900;cursor:pointer;text-transform:uppercase;letter-spacing:.08em;font-family:Inter,sans-serif;transition:all .2s" onmouseover="this.style.background='#4edea3';this.style.color='#003824'" onmouseout="this.style.background='rgba(78,222,163,0.1)';this.style.color='#4edea3'">Cobrar</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════
+//  PRÉSTAMOS
+// ══════════════════════════════════════════════
+let curSearch = '';
+function doSearch() { curSearch = document.getElementById('searchInput').value.toLowerCase(); renderPrestamos(); }
+function setFilter(f, el) { curFilter = f; document.querySelectorAll('.fc').forEach(c => c.classList.remove('active-fc')); el.classList.add('active-fc'); renderPrestamos(); }
+
+function renderPrestamos() {
+  let items = [...S.prestamos];
+  if (curFilter === 'activo') items = items.filter(p => p.estado === 'activo');
+  else if (curFilter === 'atrasado') items = items.filter(p => p.estado === 'atrasado');
+  else if (curFilter === 'cancelado') items = items.filter(p => p.estado === 'cancelado');
+  if (curSearch) items = items.filter(p => p.nombre.toLowerCase().includes(curSearch));
+  const list = document.getElementById('loansList'), empty = document.getElementById('loansEmpty');
+  if (!items.length) { list.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  const colors = ['#adc6ff','#4edea3','#ffb95f','#f472b6','#818cf8','#34d399','#fb923c'];
+  list.innerHTML = items.map(p => {
+    const saldo = getSaldo(p);
+    const pagadas = p.cuotas.filter(c => c.pagada).length, total = p.cuotas.length;
+    const pct = Math.round(pagadas / total * 100);
+    const col = colors[p.nombre.charCodeAt(0) % colors.length];
+    const init = p.nombre.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+    const hoy = todayStr();
+    const usdRec = getUsdRecuperado(p);
+    const usdRestante = Math.max(0, p.usdInvertidos - usdRec);
+    const tir = getTirPrestamo(p);
+    const estadoEl = { activo:`<span class="badge" style="background:rgba(173,198,255,0.1);color:#adc6ff">Activo</span>`, atrasado:`<span class="badge" style="background:rgba(255,180,171,0.1);color:#ffb4ab">Atrasado</span>`, cancelado:`<span class="badge" style="background:rgba(78,222,163,0.1);color:#4edea3">Completado</span>` }[p.estado];
+
+    const rows = p.cuotas.map((c, i) => {
+      let dc = '#f1f5f9';
+      if (c.pagada) dc = '#374151';
+      else if (c.fecha < hoy) dc = '#ffb4ab';
+      else if (c.fecha.slice(0,7) === hoy.slice(0,7)) dc = '#fbbf24';
+      return `<tr style="${c.pagada?'opacity:.45':''}" onmouseover="this.style.background='rgba(255,255,255,0.01)'" onmouseout="this.style.background=''">
+        <td style="padding:9px 20px;font-size:11px;font-weight:700;color:#64748b">#${c.n}</td>
+        <td style="padding:9px 20px;font-size:12px;color:${dc}">${formatDate(c.fecha)}</td>
+        <td style="padding:9px 20px;font-size:12px;font-weight:700;color:#adc6ff">$ ${fmt(c.monto)}</td>
+        <td style="padding:9px 20px;font-size:12px;color:#64748b">$ ${fmt(c.capital)}</td>
+        <td style="padding:9px 20px;font-size:12px;color:#475569">$ ${fmt(c.interes)}</td>
+        <td style="padding:9px 20px;font-size:12px;color:${c.tcRofex?'#64748b':'#374151'}">${c.tcRofex ? '$ '+c.tcRofex : '—'}</td>
+        <td style="padding:9px 20px;font-size:12px;font-weight:700;color:${c.usdEst||c.usdReal?'#4edea3':'#374151'}">${c.usdReal ? 'U$S '+fmt(c.usdReal)+' <span style="font-size:9px;color:#64748b">(real)</span>' : c.usdEst ? 'U$S '+fmt(c.usdEst)+' <span style="font-size:9px;color:#475569">(est)</span>' : '—'}</td>
+        <td style="padding:9px 20px;text-align:right">
+          ${c.pagada
+            ? `<span style="font-size:10px;color:#4edea3;font-weight:700">✓ TC ${c.tcReal||'—'}</span>`
+            : `<button onclick="openPago('${p.id}',${i})" style="background:rgba(78,222,163,0.1);color:#4edea3;border:none;padding:5px 12px;border-radius:7px;font-size:10px;font-weight:900;cursor:pointer;text-transform:uppercase;letter-spacing:.08em;font-family:Inter,sans-serif;transition:all .2s" onmouseover="this.style.background='#4edea3';this.style.color='#003824'" onmouseout="this.style.background='rgba(78,222,163,0.1)';this.style.color='#4edea3'">Cobrar</button>`}
+        </td>
+      </tr>`;
+    }).join('');
+
+    return `<div style="background:#171f33;border-radius:14px;margin-bottom:10px;border:1px solid rgba(255,255,255,0.03);overflow:hidden">
+      <div onclick="toggleCard('${p.id}')" style="display:flex;align-items:center;gap:14px;padding:20px 24px;cursor:pointer;transition:background .15s" onmouseover="this.style.background='rgba(255,255,255,0.01)'" onmouseout="this.style.background=''">
+        <div style="width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;flex-shrink:0;background:${col}20;color:${col}">${init}</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span style="font-weight:700;color:#f1f5f9;font-size:15px">${p.nombre}</span>
+            ${estadoEl}
+            ${tir !== null ? `<span class="tir-pill" style="background:rgba(78,222,163,0.1);color:#4edea3">TIR ${(tir*100).toFixed(1)}% USD</span>` : ''}
+          </div>
+          <div style="font-size:10px;color:#64748b;margin-top:3px;text-transform:uppercase;letter-spacing:.08em">${pagadas}/${total} cuotas · U$S ${fmt(p.usdInvertidos)} invertidos</div>
+          <div style="width:180px;max-width:100%;height:3px;background:#222a3d;border-radius:2px;margin-top:7px;overflow:hidden"><div style="height:100%;border-radius:2px;background:${p.estado==='cancelado'?'#4edea3':'#adc6ff'};width:${pct}%;transition:width .5s ease"></div></div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:11px;color:#64748b;margin-bottom:2px">USD en la calle</div>
+          <div style="font-size:18px;font-weight:900;letter-spacing:-.03em;color:${p.estado==='atrasado'?'#ffb4ab':p.estado==='cancelado'?'#4edea3':'#f1f5f9'}">U$S ${fmt(usdRestante)}</div>
+          <div style="font-size:10px;color:#475569;margin-top:2px">rec: U$S ${fmt(usdRec)}</div>
+        </div>
+        <span class="ms" id="chev-${p.id}" style="color:#64748b;margin-left:6px;transition:transform .3s">expand_more</span>
+      </div>
+      <div id="detail-${p.id}" style="display:none;border-top:1px solid rgba(255,255,255,0.03)">
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);border-bottom:1px solid rgba(255,255,255,0.03)">
+          ${[['Capital $',`$ ${fmt(p.capital)}`,'#f1f5f9'],['TC préstamo',`$ ${p.tcHoy}`,'#f1f5f9'],['USD invertidos',`U$S ${fmt(p.usdInvertidos)}`,'#4edea3'],['TNA',`${p.tna}%`,'#adc6ff'],['USD recuperado',`U$S ${fmt(usdRec)}`,'#4edea3']].map(([l,v,c])=>`<div style="padding:14px 20px;border-right:1px solid rgba(255,255,255,0.03)"><p style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.15em;color:#64748b;margin-bottom:3px">${l}</p><p style="font-weight:700;font-size:13px;color:${c}">${v}</p></div>`).join('')}
+        </div>
+        ${p.notas ? `<div style="padding:10px 24px;border-bottom:1px solid rgba(255,255,255,0.03);font-size:12px;color:#8892aa"><span class="ms" style="font-size:13px;margin-right:5px;color:#475569">note</span>${p.notas}</div>` : ''}
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse">
+            <thead><tr style="background:#131b2e">
+              <th style="padding:9px 20px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.15em;color:#64748b;text-align:left">N°</th>
+              <th style="padding:9px 20px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.15em;color:#64748b;text-align:left">Vto.</th>
+              <th style="padding:9px 20px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.15em;color:#64748b;text-align:left">Cuota $</th>
+              <th style="padding:9px 20px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.15em;color:#64748b;text-align:left">Capital</th>
+              <th style="padding:9px 20px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.15em;color:#64748b;text-align:left">Interés</th>
+              <th style="padding:9px 20px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.15em;color:#64748b;text-align:left">TC Rofex</th>
+              <th style="padding:9px 20px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.15em;color:#64748b;text-align:left">USD</th>
+              <th style="padding:9px 20px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.15em;color:#64748b;text-align:right">Estado</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+        <div style="display:flex;gap:8px;padding:14px 24px;border-top:1px solid rgba(255,255,255,0.03)">
+          <button onclick="openModal('${p.id}')" style="background:#222a3d;color:#94a3b8;border:none;padding:7px 16px;border-radius:9px;font-size:11px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center;gap:5px;font-family:Inter,sans-serif"><span class="ms" style="font-size:13px">edit</span>Editar</button>
+          <button onclick="delPrestamo('${p.id}')" style="background:rgba(255,180,171,0.08);color:#ffb4ab;border:none;padding:7px 16px;border-radius:9px;font-size:11px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center;gap:5px;font-family:Inter,sans-serif"><span class="ms" style="font-size:13px">delete</span>Eliminar</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleCard(id) {
+  const d = document.getElementById('detail-'+id), ch = document.getElementById('chev-'+id);
+  const open = d.style.display === 'none';
+  d.style.display = open ? 'block' : 'none';
+  ch.style.transform = open ? 'rotate(180deg)' : 'rotate(0)';
+}
+
+function delPrestamo(id) {
+  if (!confirm('¿Eliminar este préstamo?')) return;
+  S.prestamos = S.prestamos.filter(x => x.id !== id);
+  S.historial = S.historial.filter(x => x.prestamoId !== id);
+  save(); renderAll();
+}
+
+// ══════════════════════════════════════════════
+//  HISTORIAL
+// ══════════════════════════════════════════════
+function renderHistorial() {
+  const tbody = document.getElementById('histTbody'), empty = document.getElementById('histEmpty');
+  if (!S.historial.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  const totalUsd = S.historial.reduce((s, h) => s + (h.usdReal || 0), 0);
+  tbody.innerHTML = S.historial.map(h => {
+    const dif = h.usdEst ? round2(h.usdReal - h.usdEst) : null;
+    const difColor = dif === null ? '#64748b' : dif >= 0 ? '#4edea3' : '#ffb4ab';
+    return `<tr onmouseover="this.style.background='rgba(255,255,255,0.01)'" onmouseout="this.style.background=''" style="border-bottom:1px solid rgba(255,255,255,0.02)">
+      <td class="td"><div style="display:flex;align-items:center;gap:10px"><div style="width:28px;height:28px;border-radius:8px;background:rgba(78,222,163,0.1);display:flex;align-items:center;justify-content:center;color:#4edea3"><span class="ms" style="font-size:13px">check_circle</span></div><div><div style="font-weight:700;color:#f1f5f9;font-size:13px">${h.nombre}</div></div></div></td>
+      <td class="td" style="color:#64748b;font-size:12px">#${h.cuotaN}</td>
+      <td class="td" style="font-weight:700;color:#adc6ff">$ ${fmt(h.monto)}</td>
+      <td class="td" style="color:#64748b;font-size:12px">$ ${h.tcReal}</td>
+      <td class="td" style="font-weight:900;color:#4edea3">U$S ${fmt(h.usdReal)}</td>
+      <td class="td" style="color:#475569;font-size:12px">${h.usdEst ? 'U$S '+fmt(h.usdEst) : '—'}</td>
+      <td class="td" style="font-weight:700;color:${difColor}">${dif !== null ? (dif >= 0 ? '+' : '')+fmt(dif)+' USD' : '—'}</td>
+      <td class="td" style="color:#64748b;font-size:12px">${formatDate(h.fecha)}</td>
+    </tr>`;
+  }).join('') + `<tr style="background:#222a3d">
+    <td colspan="4" style="padding:12px 24px;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.15em;color:#8892aa">TOTAL RECUPERADO</td>
+    <td style="padding:12px 24px;font-weight:900;color:#4edea3;font-size:15px">U$S ${fmt(totalUsd)}</td>
+    <td colspan="3"></td>
+  </tr>`;
+}
+
+// ══════════════════════════════════════════════
+//  ANALYTICS
+// ══════════════════════════════════════════════
+function renderCharts() {
+  Object.values(charts).forEach(c => c.destroy()); charts = {};
+  const gc = 'rgba(66,71,84,0.5)', tc = '#8892aa';
+  const axes = { x: { ticks: { color: tc, font: { family: 'Inter', size: 10 } }, grid: { color: gc } }, y: { ticks: { color: tc, font: { family: 'Inter', size: 10 } }, grid: { color: gc } } };
+
+  // TIR table
+  const tirDiv = document.getElementById('tirTable');
+  tirDiv.innerHTML = S.prestamos.map(p => {
+    const tir = getTirPrestamo(p);
+    const usdRec = getUsdRecuperado(p);
+    const ganancia = round2(usdRec - p.usdInvertidos);
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-radius:10px;background:#131b2e;margin-bottom:8px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <span style="font-weight:700;color:#f1f5f9">${p.nombre}</span>
+        <span class="badge" style="background:${p.estado==='cancelado'?'rgba(78,222,163,0.1)':p.estado==='atrasado'?'rgba(255,180,171,0.1)':'rgba(173,198,255,0.1)'};color:${p.estado==='cancelado'?'#4edea3':p.estado==='atrasado'?'#ffb4ab':'#adc6ff'}">${p.estado}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:20px;text-align:right">
+        <div><div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em">Invertido</div><div style="font-weight:700;color:#f1f5f9">U$S ${fmt(p.usdInvertidos)}</div></div>
+        <div><div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em">Recuperado</div><div style="font-weight:700;color:#4edea3">U$S ${fmt(usdRec)}</div></div>
+        <div><div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em">Ganancia</div><div style="font-weight:700;color:${ganancia>=0?'#4edea3':'#ffb4ab'}">${ganancia>=0?'+':''}U$S ${fmt(ganancia)}</div></div>
+        <div><div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em">TIR anual USD</div><div style="font-weight:900;font-size:15px;color:${tir!==null&&tir>0.2?'#4edea3':'#fbbf24'}">${tir !== null ? (tir*100).toFixed(1)+'%' : '—'}</div></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // USD por mes
+  const m6 = [], now = new Date();
+  for (let i = 5; i >= 0; i--) { const d = new Date(now.getFullYear(), now.getMonth()-i, 1); m6.push(d.toISOString().slice(0,7)); }
+  charts.usd = new Chart(document.getElementById('chartUSD'), {
+    type: 'bar',
+    data: { labels: m6.map(m => m.slice(5)+'/'+m.slice(2,4)), datasets: [{ label: 'USD recuperado', data: m6.map(m => S.historial.filter(h => h.fecha.startsWith(m)).reduce((s,h)=>s+(h.usdReal||0),0)), backgroundColor: 'rgba(78,222,163,0.6)', borderRadius: 4 }] },
+    options: { responsive: true, plugins: { legend: { labels: { color: tc, font: { family: 'Inter' } } } }, scales: axes }
+  });
+
+  // Cartera
+  const totalInv = S.prestamos.reduce((s,p)=>s+p.usdInvertidos,0);
+  const totalRec = S.prestamos.reduce((s,p)=>s+getUsdRecuperado(p),0);
+  const totalEnCalle = Math.max(0, totalInv - totalRec);
+  charts.car = new Chart(document.getElementById('chartCartera'), {
+    type: 'doughnut',
+    data: { labels: ['En la calle','Recuperado'], datasets: [{ data: [totalEnCalle, totalRec], backgroundColor: ['rgba(173,198,255,0.7)','rgba(78,222,163,0.7)'], borderColor: '#171f33', borderWidth: 2 }] },
+    options: { responsive: true, plugins: { legend: { labels: { color: tc, font: { family: 'Inter' } } } } }
+  });
+
+  // Est vs Real
+  const estPorMes = m6.map(m => S.historial.filter(h => h.fecha.startsWith(m) && h.usdEst).reduce((s,h)=>s+h.usdEst,0));
+  const realPorMes = m6.map(m => S.historial.filter(h => h.fecha.startsWith(m)).reduce((s,h)=>s+(h.usdReal||0),0));
+  charts.evr = new Chart(document.getElementById('chartEstVsReal'), {
+    type: 'bar',
+    data: { labels: m6.map(m => m.slice(5)+'/'+m.slice(2,4)), datasets: [{ label: 'USD estimado (Rofex)', data: estPorMes, backgroundColor: 'rgba(173,198,255,0.35)', borderRadius: 4 }, { label: 'USD real cobrado', data: realPorMes, backgroundColor: 'rgba(78,222,163,0.65)', borderRadius: 4 }] },
+    options: { responsive: true, plugins: { legend: { labels: { color: tc, font: { family: 'Inter' } } } }, scales: axes }
+  });
+}
+
+// ══════════════════════════════════════════════
+//  CONFIG
+// ══════════════════════════════════════════════
+function saveGasUrl() { S.gasUrl = document.getElementById('gasUrl').value.trim(); save(); document.getElementById('gasStatus').textContent = S.gasUrl ? '✓ URL guardada' : 'Sin conectar'; }
+function cambiarPin() {
+  const a = document.getElementById('pinActual').value, n = document.getElementById('pinNuevo').value;
+  const msg = document.getElementById('pinMsg');
+  if (a !== S.pin) { msg.style.color = '#ffb4ab'; msg.textContent = 'PIN actual incorrecto.'; return; }
+  if (!/^\d{4}$/.test(n)) { msg.style.color = '#ffb4ab'; msg.textContent = 'El PIN debe ser 4 dígitos.'; return; }
+  S.pin = n; save(); msg.style.color = '#4edea3'; msg.textContent = '✓ PIN actualizado.';
+  document.getElementById('pinActual').value = ''; document.getElementById('pinNuevo').value = '';
+  setTimeout(() => msg.textContent = '', 3000);
+}
+function exportData() { const b = new Blob([JSON.stringify(S,null,2)],{type:'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'prestatrack_'+todayStr()+'.json'; a.click(); }
+function importData(e) { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = ev => { try { S = { ...S, ...JSON.parse(ev.target.result) }; save(); renderAll(); alert('Importado correctamente.'); } catch { alert('Archivo inválido.'); } }; r.readAsText(f); }
+
+// ══════════════════════════════════════════════
+//  SYNC
+// ══════════════════════════════════════════════
+function setSyncUI(s) {
+  const dot = document.getElementById('syncDot'), txt = document.getElementById('syncTxt'), full = document.getElementById('syncFull');
+  full.style.display = 'none';
+  if (s === 'syncing') { full.style.display = 'flex'; }
+  else if (s === 'ok') { dot.style.background = '#4edea3'; txt.textContent = 'Sincronizado'; }
+  else { dot.style.background = '#374151'; txt.textContent = 'Local'; }
+}
+async function syncData() {
+  if (!S.gasUrl) return; setSyncUI('syncing');
+  try { await fetch(S.gasUrl, { method: 'POST', body: JSON.stringify({ action: 'save', data: S }) }); setSyncUI('ok'); setTimeout(() => setSyncUI(''), 3000); }
+  catch { setSyncUI(''); }
+}
+
+// ══════════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════════
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function fmt(n) { return isNaN(n) ? '0' : Number(n.toFixed(2)).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function todayStr() { return new Date().toISOString().slice(0,10); }
+function addMonths(s, m) { const d = new Date(s+'T12:00:00'); d.setMonth(d.getMonth()+m); return d.toISOString().slice(0,10); }
+function formatDate(s) { if (!s) return '—'; const [y,mo,d] = s.split('-'); return `${d}/${mo}/${y}`; }
+
+// ══════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════
+load();
+buildInitialData();
+</script>
+</body>
+</html>
