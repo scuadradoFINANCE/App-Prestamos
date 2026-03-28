@@ -381,27 +381,55 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
 </div>
 
 <!-- ══ MODAL COBRAR CUOTA ══ -->
-<div id="pagoOverlay" style="display:none;position:fixed;inset:0;z-index:110;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:16px">
-  <div style="background:#171f33;border:1px solid rgba(255,255,255,0.08);border-radius:18px;width:100%;max-width:400px;animation:slideUp .25s ease">
+<div id="pagoOverlay" style="display:none;position:fixed;inset:0;z-index:110;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto">
+  <div style="background:#171f33;border:1px solid rgba(255,255,255,0.08);border-radius:18px;width:100%;max-width:440px;margin:auto;animation:slideUp .25s ease">
     <div style="padding:26px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
         <h3 id="pagoTitle" style="font-size:16px;font-weight:800;color:#f1f5f9">Registrar cobro</h3>
         <button onclick="closePago()" style="background:none;border:none;color:#64748b;cursor:pointer"><span class="ms">close</span></button>
       </div>
+
+      <!-- Info cuota -->
       <div id="pagoInfo" style="background:#131b2e;border-radius:9px;padding:13px;margin-bottom:14px;font-size:12px"></div>
-      <div style="margin-bottom:13px">
-        <label class="ml">TC real del día ($/USD)</label>
-        <input id="pagoTc" type="number" placeholder="ej: 1520" oninput="calcPago()" class="mi"/>
+
+      <!-- Inputs principales -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:13px">
+        <div>
+          <label class="ml">Monto cobrado ($)</label>
+          <input id="pagoMonto" type="number" placeholder="monto total de la cuota" oninput="calcPago()" class="mi" style="font-size:13px"/>
+          <div id="pagoMontoPct" style="font-size:10px;color:#64748b;margin-top:4px;height:13px"></div>
+        </div>
+        <div>
+          <label class="ml">TC real del día ($/USD)</label>
+          <input id="pagoTc" type="number" placeholder="ej: 1520" oninput="calcPago()" class="mi"/>
+        </div>
       </div>
-      <div id="pagoCalc" style="display:none;background:#131b2e;border-radius:9px;padding:13px;margin-bottom:14px;font-size:12px">
+
+      <!-- Resumen cobro normal -->
+      <div id="pagoCalc" style="display:none;background:#131b2e;border-radius:9px;padding:13px;margin-bottom:11px;font-size:12px">
         <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:#8892aa">$ Cobrados</span><span id="pcPesos" style="font-weight:700;color:#adc6ff"></span></div>
         <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:#8892aa">USD recomprados</span><span id="pcUsd" style="font-weight:700;color:#4edea3"></span></div>
         <div style="display:flex;justify-content:space-between"><span style="color:#8892aa">USD estimado era</span><span id="pcUsdEst" style="color:#64748b"></span></div>
-        <div id="pcDifRow" style="display:flex;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.05)"><span style="color:#8892aa">Diferencia</span><span id="pcDif" style="font-weight:700"></span></div>
+        <div id="pcDifRow" style="display:flex;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.05)"><span style="color:#8892aa">Diferencia USD</span><span id="pcDif" style="font-weight:700"></span></div>
       </div>
+
+      <!-- Bloque mora — solo aparece si pago parcial -->
+      <div id="pagoMoraBloque" style="display:none;background:rgba(255,185,95,0.06);border:1px solid rgba(255,185,95,0.18);border-radius:9px;padding:13px;margin-bottom:11px;font-size:12px">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:10px">
+          <span class="ms" style="color:#ffb95f;font-size:16px">warning</span>
+          <span style="font-weight:800;color:#ffb95f;font-size:12px">PAGO PARCIAL — MORA</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:#8892aa">Saldo impago</span><span id="pmSaldo" style="font-weight:700;color:#ffb95f"></span></div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:#8892aa">TNA préstamo</span><span id="pmTnaBase" style="color:#64748b"></span></div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:#8892aa">+ Mora adicional</span><span style="color:#ffb95f">+15% TNA</span></div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid rgba(255,185,95,0.15)"><span style="font-weight:700;color:#f1f5f9">TNA mora total</span><span id="pmTnaMora" style="font-weight:900;color:#ffb95f"></span></div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:#8892aa">Nueva cuota (mora)</span><span id="pmNuevaCuota" style="font-weight:900;color:#ffb95f;font-size:13px"></span></div>
+        <div style="display:flex;justify-content:space-between"><span style="color:#8892aa">Se agrega para</span><span id="pmFechaMora" style="color:#64748b"></span></div>
+      </div>
+
       <div style="display:flex;gap:9px;justify-content:flex-end">
         <button onclick="closePago()" style="background:#222a3d;color:#94a3b8;border:none;padding:9px 18px;border-radius:9px;font-size:11px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">Cancelar</button>
-        <button onclick="confirmarPago()" style="background:#4edea3;color:#003824;border:none;padding:9px 18px;border-radius:9px;font-size:11px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;text-transform:uppercase">Confirmar cobro</button>
+        <button onclick="confirmarPago()" id="pagoConfirmBtn" style="background:#4edea3;color:#003824;border:none;padding:9px 18px;border-radius:9px;font-size:11px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;text-transform:uppercase;letter-spacing:.06em">Confirmar cobro</button>
       </div>
     </div>
   </div>
@@ -693,16 +721,24 @@ function guardar() {
 // ══════════════════════════════════════════════
 function openPago(pid, cidx) {
   const p=S.prestamos.find(x=>x.id===pid); const c=p.cuotas[cidx];
-  pagoData={pid,cidx};
+  pagoData={pid, cidx, montoCuota: c.monto, tnaBase: p.tna};
   document.getElementById('pagoTitle').textContent=`Cobrar — ${p.nombre} Cuota #${c.n}`;
   document.getElementById('pagoInfo').innerHTML=`
-    <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:#8892aa">Monto</span><span style="font-weight:700;color:#adc6ff">$ ${fmt(c.monto)}</span></div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:#8892aa">Deudor</span><span style="font-weight:700;color:#f1f5f9">${p.nombre}</span></div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:#8892aa">Cuota N°</span><span style="color:#f1f5f9">#${c.n} de ${p.cuotas.length}</span></div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:#8892aa">Monto total cuota</span><span style="font-weight:700;color:#adc6ff">$ ${fmt(c.monto)}</span></div>
     <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:#8892aa">Capital</span><span style="color:#f1f5f9">$ ${fmt(c.capital)}</span></div>
     <div style="display:flex;justify-content:space-between"><span style="color:#8892aa">Interés</span><span style="color:#fbbf24">$ ${fmt(c.interes)}</span></div>
-    ${c.tcRofex?`<div style="display:flex;justify-content:space-between;margin-top:7px;padding-top:7px;border-top:1px solid rgba(255,255,255,0.05)"><span style="color:#8892aa">TC Rofex estimado</span><span style="color:#64748b">$${c.tcRofex} → U$S ${fmt(c.usdEst)}</span></div>`:''}
+    ${c.tcRofex?`<div style="display:flex;justify-content:space-between;margin-top:7px;padding-top:7px;border-top:1px solid rgba(255,255,255,0.05)"><span style="color:#8892aa">TC Rofex est.</span><span style="color:#64748b">$${c.tcRofex} → U$S ${fmt(c.usdEst)}</span></div>`:''}
     ${c.nota?`<div style="margin-top:7px;font-size:11px;color:#ffb95f">⚠ ${c.nota}</div>`:''}`;
+  // Prellenar monto con total de la cuota
+  document.getElementById('pagoMonto').value = c.monto;
   document.getElementById('pagoTc').value='';
   document.getElementById('pagoCalc').style.display='none';
+  document.getElementById('pagoMoraBloque').style.display='none';
+  document.getElementById('pagoMontoPct').textContent='';
+  document.getElementById('pagoConfirmBtn').style.background='#4edea3';
+  document.getElementById('pagoConfirmBtn').style.color='#003824';
   document.getElementById('pagoOverlay').style.display='flex';
 }
 function closePago() { document.getElementById('pagoOverlay').style.display='none'; pagoData=null; }
@@ -710,27 +746,123 @@ document.getElementById('pagoOverlay').addEventListener('click', e => { if(e.tar
 
 function calcPago() {
   if (!pagoData) return;
-  const p=S.prestamos.find(x=>x.id===pagoData.pid); const c=p.cuotas[pagoData.cidx];
+  const monto=parseFloat(document.getElementById('pagoMonto').value);
   const tc=parseFloat(document.getElementById('pagoTc').value);
-  if (!tc) { document.getElementById('pagoCalc').style.display='none'; return; }
-  const usdReal=r2(c.monto/tc);
-  const dif=c.usdEst?r2(usdReal-c.usdEst):null;
-  document.getElementById('pcPesos').textContent='$ '+fmt(c.monto);
+  const montoCuota=pagoData.montoCuota;
+  const tnaBase=pagoData.tnaBase;
+
+  // Porcentaje cobrado
+  if (monto && montoCuota) {
+    const pct=Math.round(monto/montoCuota*100);
+    const pctEl=document.getElementById('pagoMontoPct');
+    if (monto > montoCuota) { pctEl.textContent='⚠ El monto supera la cuota'; pctEl.style.color='#ffb4ab'; }
+    else if (monto < montoCuota) { pctEl.textContent=`${pct}% de la cuota · saldo: $ ${fmt(r2(montoCuota-monto))}`; pctEl.style.color='#ffb95f'; }
+    else { pctEl.textContent='✓ Pago completo'; pctEl.style.color='#4edea3'; }
+  }
+
+  if (!monto || !tc) { document.getElementById('pagoCalc').style.display='none'; document.getElementById('pagoMoraBloque').style.display='none'; return; }
+
+  const usdReal=r2(monto/tc);
+  const p=S.prestamos.find(x=>x.id===pagoData.pid);
+  const c=p.cuotas[pagoData.cidx];
+  const dif=c.usdEst?r2(usdReal-c.usdEst*(monto/montoCuota)):null;
+
+  document.getElementById('pcPesos').textContent='$ '+fmt(monto);
   document.getElementById('pcUsd').textContent='U$S '+fmt(usdReal);
-  document.getElementById('pcUsdEst').textContent=c.usdEst?'U$S '+fmt(c.usdEst):'—';
+  document.getElementById('pcUsdEst').textContent=c.usdEst?'U$S '+fmt(r2(c.usdEst*(monto/montoCuota))):'—';
   if (dif!==null) { document.getElementById('pcDif').textContent=(dif>=0?'+':'')+fmt(dif)+' USD'; document.getElementById('pcDif').style.color=dif>=0?'#4edea3':'#ffb4ab'; document.getElementById('pcDifRow').style.display='flex'; }
   else document.getElementById('pcDifRow').style.display='none';
   document.getElementById('pagoCalc').style.display='block';
+
+  // Bloque mora si pago parcial
+  const saldoImpago=r2(montoCuota-monto);
+  if (saldoImpago > 0.01) {
+    const tnaMora=r2(tnaBase+15);
+    const rMora=(tnaMora/100)/12;
+    const nuevaCuotaMora=r2(saldoImpago*(1+rMora)); // 1 cuota
+    const fechaMora=addMonths(c.fecha,1);
+    document.getElementById('pmSaldo').textContent='$ '+fmt(saldoImpago);
+    document.getElementById('pmTnaBase').textContent=tnaBase+'% TNA';
+    document.getElementById('pmTnaMora').textContent=tnaMora+'% TNA';
+    document.getElementById('pmNuevaCuota').textContent='$ '+fmt(nuevaCuotaMora);
+    document.getElementById('pmFechaMora').textContent=formatDate(fechaMora);
+    document.getElementById('pagoMoraBloque').style.display='block';
+    // Cambiar botón a naranja para indicar mora
+    document.getElementById('pagoConfirmBtn').style.background='#ffb95f';
+    document.getElementById('pagoConfirmBtn').style.color='#3e2400';
+    document.getElementById('pagoConfirmBtn').textContent='Confirmar + agregar mora';
+  } else {
+    document.getElementById('pagoMoraBloque').style.display='none';
+    document.getElementById('pagoConfirmBtn').style.background='#4edea3';
+    document.getElementById('pagoConfirmBtn').style.color='#003824';
+    document.getElementById('pagoConfirmBtn').textContent='Confirmar cobro';
+  }
 }
 
 function confirmarPago() {
   if (!pagoData) return;
+  const monto=parseFloat(document.getElementById('pagoMonto').value);
   const tc=parseFloat(document.getElementById('pagoTc').value);
-  if (!tc) { alert('Ingresá el TC real del día.'); return; }
-  const p=S.prestamos.find(x=>x.id===pagoData.pid); const c=p.cuotas[pagoData.cidx];
-  c.pagada=true; c.fechaPago=todayStr(); c.tcReal=tc; c.usdReal=r2(c.monto/tc);
+  if (!monto || !tc) { alert('Ingresá el monto cobrado y el TC real del día.'); return; }
+  if (monto <= 0) { alert('El monto debe ser mayor a cero.'); return; }
+
+  const p=S.prestamos.find(x=>x.id===pagoData.pid);
+  const c=p.cuotas[pagoData.cidx];
+  const montoCuota=pagoData.montoCuota;
+  const tnaBase=pagoData.tnaBase;
+  const saldoImpago=r2(montoCuota-monto);
+  const esParcial=saldoImpago > 0.01;
+
+  // Marcar cuota como pagada (puede ser parcial)
+  c.pagada=true;
+  c.fechaPago=todayStr();
+  c.tcReal=tc;
+  c.usdReal=r2(monto/tc);
+  c.monto=monto; // actualizar al monto realmente cobrado
+  if (esParcial) c.nota=(c.nota?c.nota+' · ':'')+'Pago parcial $'+fmt(monto);
+
+  // Registrar en historial
+  S.historial.unshift({
+    id:uid(), prestamoId:p.id, nombre:p.nombre, cuotaN:c.n,
+    monto:monto, tcReal:tc, usdReal:c.usdReal,
+    usdEst:c.usdEst?r2(c.usdEst*(monto/montoCuota)):null,
+    fecha:c.fechaPago,
+    nota: esParcial ? `Pago parcial ($ ${fmt(monto)} de $ ${fmt(montoCuota)})` : null
+  });
+
+  // Si pago parcial → generar cuota de mora
+  if (esParcial) {
+    const tnaMora=r2(tnaBase+15);
+    const rMora=(tnaMora/100)/12;
+    const nuevaCuotaMora=r2(saldoImpago*(1+rMora));
+    const fechaMora=addMonths(c.fecha,1);
+    const maxN=Math.max(...p.cuotas.map(x=>x.n));
+    const mesKey=fechaMora.slice(0,7);
+    const tcRofexMora=S.rofex[mesKey]||null;
+    p.cuotas.push({
+      n: maxN+1,
+      fecha: fechaMora,
+      monto: nuevaCuotaMora,
+      capital: saldoImpago,
+      interes: r2(saldoImpago*rMora),
+      saldo: 0,
+      tcRofex: tcRofexMora,
+      usdEst: tcRofexMora?r2(nuevaCuotaMora/tcRofexMora):null,
+      pagada: false, fechaPago: null, tcReal: null, usdReal: null,
+      esRefi: true,
+      nota: `Mora: saldo $ ${fmt(saldoImpago)} al ${tnaMora}% TNA`
+    });
+    p.numCuotas=p.cuotas.length;
+    // Log mora en historial
+    S.historial.unshift({
+      id:uid(), prestamoId:p.id, nombre:p.nombre, cuotaN:'MORA',
+      monto:saldoImpago, tcReal:null, usdReal:null, usdEst:null,
+      fecha:todayStr(), tipo:'mora',
+      nota:`Mora generada: $ ${fmt(nuevaCuotaMora)} para ${formatDate(fechaMora)} al ${tnaMora}% TNA`
+    });
+  }
+
   p.estado=getEstado(p);
-  S.historial.unshift({id:uid(),prestamoId:p.id,nombre:p.nombre,cuotaN:c.n,monto:c.monto,tcReal:tc,usdReal:c.usdReal,usdEst:c.usdEst,fecha:c.fechaPago});
   save(); closePago(); renderAll(); syncData();
 }
 
@@ -1220,9 +1352,10 @@ function renderHistorial() {
   empty.style.display='none';
   const totalUsd=S.historial.filter(h=>h.tipo!=='refinanciacion').reduce((s,h)=>s+(h.usdReal||0),0);
   tbody.innerHTML=S.historial.map(h => {
-    if (h.tipo==='refinanciacion') return `<tr style="background:rgba(255,185,95,0.03)" onmouseover="this.style.background='rgba(255,185,95,0.06)'" onmouseout="this.style.background='rgba(255,185,95,0.03)'" style="border-bottom:1px solid rgba(255,255,255,0.02)">
-      <td class="td"><div style="display:flex;align-items:center;gap:9px"><div style="width:26px;height:26px;border-radius:7px;background:rgba(255,185,95,0.1);display:flex;align-items:center;justify-content:center;color:#ffb95f"><span class="ms" style="font-size:12px">refresh</span></div><span style="font-weight:700;color:#f1f5f9;font-size:12px">${h.nombre}</span></div></td>
-      <td class="td" colspan="6" style="color:#ffb95f;font-size:11px">${h.nota||'Refinanciación'}</td>
+    if (h.tipo==='refinanciacion'||h.tipo==='mora') return `<tr style="background:rgba(255,185,95,0.03)" onmouseover="this.style.background='rgba(255,185,95,0.06)'" onmouseout="this.style.background='rgba(255,185,95,0.03)'" style="border-bottom:1px solid rgba(255,255,255,0.02)">
+      <td class="td"><div style="display:flex;align-items:center;gap:9px"><div style="width:26px;height:26px;border-radius:7px;background:rgba(255,185,95,0.1);display:flex;align-items:center;justify-content:center;color:#ffb95f"><span class="ms" style="font-size:12px">${h.tipo==='mora'?'warning':'refresh'}</span></div><span style="font-weight:700;color:#f1f5f9;font-size:12px">${h.nombre}</span></div></td>
+      <td class="td" style="color:#ffb95f;font-size:11px;font-weight:700">${h.tipo==='mora'?'MORA':'REFI'}</td>
+      <td class="td" colspan="5" style="color:#ffb95f;font-size:11px">${h.nota||''}</td>
       <td class="td" style="color:#64748b;font-size:11px">${formatDate(h.fecha)}</td>
     </tr>`;
     const dif=h.usdEst?r2(h.usdReal-h.usdEst):null;
