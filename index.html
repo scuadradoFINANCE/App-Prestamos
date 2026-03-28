@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+<meta http-equiv="Pragma" content="no-cache"/>
+<meta http-equiv="Expires" content="0"/>
 <title>PréstaTrack | Ledger USD</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -605,7 +608,7 @@ function calcModal() {
   // TIR
   if (usdInv && usdPorCuota.every(Boolean)) {
     const tir = tirAnual(usdInv, sched.map((s, i) => ({ usdEst: usdPorCuota[i] })));
-    document.getElementById('mcTir').textContent = tir !== null ? (tir * 100).toFixed(1) + '% anual USD' : '—';
+    document.getElementById('mcTir').textContent = tir !== null ? fmtPct(tir * 100) + '% anual USD' : '—';
     document.getElementById('mcTir').style.color = tir > 0.2 ? '#4edea3' : '#fbbf24';
   } else {
     document.getElementById('mcTir').textContent = '— (completá TC Rofex)';
@@ -728,7 +731,7 @@ function updateSidebar() {
   const prestConTir = activos.filter(p => getTirPrestamo(p) !== null);
   if (prestConTir.length > 0) {
     const tirProm = prestConTir.reduce((s, p) => s + getTirPrestamo(p), 0) / prestConTir.length;
-    document.getElementById('sideTIR').textContent = `TIR prom: ${(tirProm*100).toFixed(1)}% anual USD`;
+    document.getElementById('sideTIR').textContent = `TIR prom: ${fmtPct(tirProm*100)}% anual USD`;
   }
 }
 
@@ -847,7 +850,7 @@ function renderPrestamos() {
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
             <span style="font-weight:700;color:#f1f5f9;font-size:15px">${p.nombre}</span>
             ${estadoEl}
-            ${tir !== null ? `<span class="tir-pill" style="background:rgba(78,222,163,0.1);color:#4edea3">TIR ${(tir*100).toFixed(1)}% USD</span>` : ''}
+            ${tir !== null ? `<span class="tir-pill" style="background:rgba(78,222,163,0.1);color:#4edea3">TIR ${fmtPct(tir*100)}% USD</span>` : ''}
           </div>
           <div style="font-size:10px;color:#64748b;margin-top:3px;text-transform:uppercase;letter-spacing:.08em">${pagadas}/${total} cuotas · U$S ${fmt(p.usdInvertidos)} invertidos</div>
           <div style="width:180px;max-width:100%;height:3px;background:#222a3d;border-radius:2px;margin-top:7px;overflow:hidden"><div style="height:100%;border-radius:2px;background:${p.estado==='cancelado'?'#4edea3':'#adc6ff'};width:${pct}%;transition:width .5s ease"></div></div>
@@ -942,18 +945,24 @@ function renderCharts() {
   const tirDiv = document.getElementById('tirTable');
   tirDiv.innerHTML = S.prestamos.map(p => {
     const tir = getTirPrestamo(p);
-    const usdRec = getUsdRecuperado(p);
+    const usdRec = round2(getUsdRecuperado(p));
     const ganancia = round2(usdRec - p.usdInvertidos);
+    const tirStr = tir !== null ? fmtPct(tir * 100) + '%' : '—';
+    // Para préstamos activos sin cobros aún, ganancia muestra "En curso"
+    const sinCobros = usdRec === 0 && p.estado !== 'cancelado';
+    const gananciaStr = sinCobros
+      ? `<span style="font-size:10px;color:#64748b;font-weight:600">En curso</span>`
+      : `<span style="font-weight:700;color:${ganancia>=0?'#4edea3':'#ffb4ab'}">${ganancia>=0?'+':''}U$S ${fmtUsd(ganancia)}</span>`;
     return `<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-radius:10px;background:#131b2e;margin-bottom:8px">
-      <div style="display:flex;align-items:center;gap:12px">
+      <div style="display:flex;align-items:center;gap:12px;min-width:160px">
         <span style="font-weight:700;color:#f1f5f9">${p.nombre}</span>
         <span class="badge" style="background:${p.estado==='cancelado'?'rgba(78,222,163,0.1)':p.estado==='atrasado'?'rgba(255,180,171,0.1)':'rgba(173,198,255,0.1)'};color:${p.estado==='cancelado'?'#4edea3':p.estado==='atrasado'?'#ffb4ab':'#adc6ff'}">${p.estado}</span>
       </div>
-      <div style="display:flex;align-items:center;gap:20px;text-align:right">
-        <div><div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em">Invertido</div><div style="font-weight:700;color:#f1f5f9">U$S ${fmt(p.usdInvertidos)}</div></div>
-        <div><div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em">Recuperado</div><div style="font-weight:700;color:#4edea3">U$S ${fmt(usdRec)}</div></div>
-        <div><div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em">Ganancia</div><div style="font-weight:700;color:${ganancia>=0?'#4edea3':'#ffb4ab'}">${ganancia>=0?'+':''}U$S ${fmt(ganancia)}</div></div>
-        <div><div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em">TIR anual USD</div><div style="font-weight:900;font-size:15px;color:${tir!==null&&tir>0.2?'#4edea3':'#fbbf24'}">${tir !== null ? (tir*100).toFixed(1)+'%' : '—'}</div></div>
+      <div style="display:flex;align-items:center;gap:24px;text-align:right">
+        <div style="min-width:90px"><div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px">Invertido</div><div style="font-weight:700;color:#f1f5f9">U$S ${fmtUsd(p.usdInvertidos)}</div></div>
+        <div style="min-width:90px"><div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px">Recuperado</div><div style="font-weight:700;color:#4edea3">U$S ${fmtUsd(usdRec)}</div></div>
+        <div style="min-width:100px"><div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px">Ganancia</div>${gananciaStr}</div>
+        <div style="min-width:80px"><div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px">TIR anual USD</div><div style="font-weight:900;font-size:15px;color:${tir!==null&&tir>0.2?'#4edea3':tir!==null?'#fbbf24':'#64748b'}">${tirStr}</div></div>
       </div>
     </div>`;
   }).join('');
@@ -1059,6 +1068,8 @@ async function syncData(manual = false) {
 // ══════════════════════════════════════════════
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
 function fmt(n) { return isNaN(n) ? '0' : Number(n.toFixed(2)).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmtUsd(n) { if (isNaN(n)) return '0,00'; return Number(n).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmtPct(n) { if (isNaN(n) || !isFinite(n)) return '—'; return Number(n).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function todayStr() { return new Date().toISOString().slice(0,10); }
 function addMonths(s, m) { const d = new Date(s+'T12:00:00'); d.setMonth(d.getMonth()+m); return d.toISOString().slice(0,10); }
 function formatDate(s) { if (!s) return '—'; const [y,mo,d] = s.split('-'); return `${d}/${mo}/${y}`; }
