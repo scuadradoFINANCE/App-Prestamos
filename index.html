@@ -995,17 +995,23 @@ function renderPrestamos() {
           <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
             <span style="font-weight:700;color:#f1f5f9;font-size:14px">${p.nombre}</span>
             ${estadoEl}
-            ${tir!==null?`<span style="background:rgba(78,222,163,0.1);color:#4edea3;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:700">TIR ${fmtPct(tir*100)}% USD</span>`:''}
+            ${p.estado==='cancelado'&&tir!==null?`<span style="background:rgba(78,222,163,0.1);color:#4edea3;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:700">TIR ${fmtPct(tir*100)}% USD</span>`:''}
           </div>
           <div style="font-size:10px;color:#64748b;margin-top:2px">${pagadas}/${total} cuotas · U$S ${fmt(p.usdInvertidos)} invertidos</div>
           <div style="width:160px;max-width:100%;height:3px;background:#222a3d;border-radius:2px;margin-top:6px;overflow:hidden"><div style="height:100%;border-radius:2px;background:${p.estado==='cancelado'?'#4edea3':'#adc6ff'};width:${pct}%;transition:width .5s ease"></div></div>
         </div>
-        <!-- Estimativo del préstamo -->
+        <!-- Bloque central: completados → TIR + ganancia real / activos → estimativo / resto → — -->
+        ${p.estado==='cancelado' ? `
+        <div style="text-align:center;flex-shrink:0;padding:0 16px;border-left:1px solid rgba(255,255,255,0.05);border-right:1px solid rgba(255,255,255,0.05)">
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:#64748b;margin-bottom:3px">Ganancia real</div>
+          <div style="font-size:15px;font-weight:900;color:${r2(usdRec-p.usdInvertidos)>=0?'#4edea3':'#ffb4ab'}">${(r2(usdRec-p.usdInvertidos)>=0?'+':'')+fmt(r2(usdRec-p.usdInvertidos))} USD</div>
+          <div style="font-size:9px;color:${tir!==null&&tir>0?'#4edea3':'#ffb4ab'};margin-top:1px">${tir!==null?'TIR '+fmtPct(tir*100)+'% USD':''}</div>
+        </div>` : `
         <div style="text-align:center;flex-shrink:0;padding:0 16px;border-left:1px solid rgba(255,255,255,0.05);border-right:1px solid rgba(255,255,255,0.05)">
           <div style="font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:#64748b;margin-bottom:3px">Est. total USD</div>
           <div style="font-size:15px;font-weight:900;color:${usdEstPend>0?'#4edea3':'#374151'}">${usdEstPend>0?'U$S '+fmt(r2(usdTotalEst)):'—'}</div>
-          <div style="font-size:9px;color:${gananciaEst>=0?'#4edea3':'#ffb4ab'};margin-top:1px">${usdEstPend>0?(gananciaEst>=0?'+':'')+fmt(gananciaEst)+' USD':''}</div>
-        </div>
+          <div style="font-size:9px;color:${usdEstPend>0&&gananciaEst>=0?'#4edea3':'#ffb4ab'};margin-top:1px">${usdEstPend>0?(gananciaEst>=0?'+':'')+fmt(gananciaEst)+' USD':'<span style="color:#374151">—</span>'}</div>
+        </div>`}
         <div style="text-align:right;flex-shrink:0">
           <div style="font-size:10px;color:#64748b;margin-bottom:2px">USD en la calle</div>
           <div style="font-size:17px;font-weight:900;color:${p.estado==='atrasado'?'#ffb4ab':p.estado==='cancelado'?'#4edea3':'#f1f5f9'}">U$S ${fmt(r2(usdEnCalle))}</div>
@@ -1141,15 +1147,24 @@ function renderRofexPorPrestamo() {
         <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">Recuperado</div>
         <div style="font-weight:700;color:#4edea3;font-size:12px">U$S ${fmt(r2(usdRec))}</div>
       </div>
+      ${p.estado==='cancelado' ? `
       <div style="text-align:center;min-width:110px">
-        <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">Est. total</div>
-        <div style="font-weight:900;color:${usdEstPend>0?'#4edea3':'#374151'};font-size:14px">${usdEstPend>0?'U$S '+fmt(usdTotalEst):'—'}</div>
-        <div style="font-size:9px;color:${ganancia>=0?'#4edea3':'#ffb4ab'}">${usdEstPend>0?(ganancia>=0?'+':'')+fmt(ganancia)+' USD':''}</div>
+        <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">Ganancia real</div>
+        <div style="font-weight:900;color:${r2(usdRec-p.usdInvertidos)>=0?'#4edea3':'#ffb4ab'};font-size:14px">${(r2(usdRec-p.usdInvertidos)>=0?'+':'')+fmt(r2(usdRec-p.usdInvertidos))} USD</div>
       </div>
       <div style="text-align:center;min-width:80px">
         <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">TIR USD</div>
         <div style="font-weight:900;font-size:14px;color:${tir!==null&&tir>0.2?'#4edea3':tir!==null?'#fbbf24':'#374151'}">${tir!==null?fmtPct(tir*100)+'%':'—'}</div>
+      </div>` : `
+      <div style="text-align:center;min-width:110px">
+        <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">Est. total</div>
+        <div style="font-weight:900;color:${usdEstPend>0?'#4edea3':'#374151'};font-size:14px">${usdEstPend>0?'U$S '+fmt(usdTotalEst):'—'}</div>
+        <div style="font-size:9px;color:${usdEstPend>0&&ganancia>=0?'#4edea3':'#ffb4ab'}">${usdEstPend>0?(ganancia>=0?'+':'')+fmt(ganancia)+' USD':''}</div>
       </div>
+      <div style="text-align:center;min-width:80px">
+        <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">TIR USD</div>
+        <div style="font-weight:900;font-size:14px;color:#374151">—</div>
+      </div>`}
     </div>`;
   }).join('');
 }
@@ -1247,8 +1262,12 @@ function renderCharts() {
       <div style="display:flex;align-items:center;gap:20px;text-align:right">
         <div style="min-width:80px"><div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">Invertido</div><div style="font-weight:700;color:#f1f5f9;font-size:12px">U$S ${fmt(p.usdInvertidos)}</div></div>
         <div style="min-width:80px"><div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">Recuperado</div><div style="font-weight:700;color:#4edea3;font-size:12px">U$S ${fmt(usdRec)}</div></div>
-        <div style="min-width:100px"><div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">Est. total</div><div style="font-weight:700;color:${usdEstPend>0?'#4edea3':'#374151'};font-size:12px">${usdEstPend>0?'U$S '+fmt(usdTotalEst):'—'}</div><div style="font-size:9px;color:${ganEst>=0?'#4edea3':'#ffb4ab'}">${usdEstPend>0?(ganEst>=0?'+':'')+fmt(ganEst)+' USD':''}</div></div>
-        <div style="min-width:75px"><div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">TIR anual USD</div><div style="font-weight:900;font-size:15px;color:${tir!==null&&tir>0.2?'#4edea3':tir!==null?'#fbbf24':'#64748b'}">${tir!==null?fmtPct(tir*100)+'%':'—'}</div></div>
+        ${p.estado==='cancelado'
+          ? `<div style="min-width:100px"><div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">Ganancia real</div><div style="font-weight:700;color:${ganReal>=0?'#4edea3':'#ffb4ab'};font-size:12px">${(ganReal>=0?'+':'')+fmt(ganReal)} USD</div></div>
+        <div style="min-width:75px"><div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">TIR anual USD</div><div style="font-weight:900;font-size:15px;color:${tir!==null&&tir>0.2?'#4edea3':tir!==null?'#fbbf24':'#64748b'}">${tir!==null?fmtPct(tir*100)+'%':'—'}</div></div>`
+          : `<div style="min-width:100px"><div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">Est. total</div><div style="font-weight:700;color:${usdEstPend>0?'#4edea3':'#374151'};font-size:12px">${usdEstPend>0?'U$S '+fmt(usdTotalEst):'—'}</div><div style="font-size:9px;color:${usdEstPend>0&&ganEst>=0?'#4edea3':'#ffb4ab'}">${usdEstPend>0?(ganEst>=0?'+':'')+fmt(ganEst)+' USD':''}</div></div>
+        <div style="min-width:75px"><div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">TIR anual USD</div><div style="font-weight:900;font-size:15px;color:#374151">—</div></div>`
+        }
       </div>
     </div>`;
   }).join('');
