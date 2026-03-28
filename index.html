@@ -401,73 +401,82 @@ function buildInitialData() {
   const fecha = (y, m, d = 1) => `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
 
   // ── 1. MONI (1) — COMPLETADO ──
-  // $1.000.000 · TC 1397 · 75% TNA · 6 cuotas · Inicio feb 2026
+  // Sep-Oct-Nov-Dic 2025 · Ene-Feb 2026 · TC 1397 · 75% TNA · 6 cuotas
   const p1id = uid();
   const m1 = french(1000000, 75, 6);
   const tcsM1 = [1426, 1506, 1455, 1466, 1465, 1395];
+  // meses: sep=9, oct=10, nov=11, dic=12(2025), ene=1(2026), feb=2(2026)
+  const fechasM1 = [fecha(2025,9), fecha(2025,10), fecha(2025,11), fecha(2025,12), fecha(2026,1), fecha(2026,2)];
   const cuotasM1 = m1.sched.map((s, i) => ({
-    n: s.n, fecha: fecha(2026, 2 + i), monto: s.cuota,
+    n: s.n, fecha: fechasM1[i], monto: s.cuota,
     capital: s.capital, interes: s.interes, saldo: s.saldo,
     tcRofex: tcsM1[i], usdEst: round2(s.cuota / tcsM1[i]),
-    pagada: true, fechaPago: fecha(2026, 2 + i, 5),
+    pagada: true, fechaPago: fechasM1[i],
     tcReal: tcsM1[i], usdReal: round2(s.cuota / tcsM1[i]),
   }));
-  const usdRealM1 = cuotasM1.reduce((s, c) => s + c.usdReal, 0);
-  S.prestamos.push({ id: p1id, nombre: 'Moni', capital: 1000000, tcHoy: 1397, usdInvertidos: round2(1000000/1397), tna: 75, numCuotas: 6, fechaInicio: fecha(2026,2), notas: '', cuota: m1.cuota, cuotas: cuotasM1, estado: 'cancelado', creado: fecha(2026,1,25) });
+  S.prestamos.push({ id: p1id, nombre: 'Moni', capital: 1000000, tcHoy: 1397, usdInvertidos: round2(1000000/1397), tna: 75, numCuotas: 6, fechaInicio: fecha(2025,9), notas: '', cuota: m1.cuota, cuotas: cuotasM1, estado: 'cancelado', creado: fecha(2025,8,25) });
   cuotasM1.forEach(c => {
     S.historial.push({ id: uid(), prestamoId: p1id, nombre: 'Moni', cuotaN: c.n, monto: c.monto, tcReal: c.tcReal, usdReal: c.usdReal, usdEst: c.usdEst, fecha: c.fechaPago });
   });
 
   // ── 2. ANDREA (1) — EN CURSO, pago parcial c3 ──
-  // $1.000.000 · TC 1495 · 85% TNA · 4 cuotas
-  // c1 pagada TC 1496, c2 pagada TC 1445, c3 pagó 200k (parcial), c4 refinanciada
+  // Ene-Feb-Mar 2026 · TC 1495 · 85% TNA · 4 cuotas
+  // c1 pagada TC 1496 (ene), c2 pagada TC 1445 (feb), c3 pagó 200k parcial (mar), c4 pendiente (abr)
   const p2id = uid();
   const a1 = french(1000000, 85, 4);
   const r85 = (85/100)/12;
-  // saldo real tras pago parcial cuota 3
   const saldoTrasC2 = a1.sched[1].saldo;
   const intC3 = round2(saldoTrasC2 * r85);
   const capPagadoC3 = round2(200000 - intC3);
   const saldoTrasC3 = round2(saldoTrasC2 - capPagadoC3);
   const cuota4Ref = round2(saldoTrasC3 * (1 + r85));
   const cuotasA1 = [
-    { n:1, fecha:fecha(2026,2), monto:a1.sched[0].cuota, capital:a1.sched[0].capital, interes:a1.sched[0].interes, saldo:a1.sched[0].saldo, tcRofex:1496, usdEst:round2(a1.sched[0].cuota/1496), pagada:true, fechaPago:fecha(2026,2,5), tcReal:1496, usdReal:round2(a1.sched[0].cuota/1496) },
-    { n:2, fecha:fecha(2026,3), monto:a1.sched[1].cuota, capital:a1.sched[1].capital, interes:a1.sched[1].interes, saldo:a1.sched[1].saldo, tcRofex:1445, usdEst:round2(a1.sched[1].cuota/1445), pagada:true, fechaPago:fecha(2026,3,5), tcReal:1445, usdReal:round2(a1.sched[1].cuota/1445) },
-    { n:3, fecha:fecha(2026,3,20), monto:200000, capital:capPagadoC3, interes:intC3, saldo:saldoTrasC3, tcRofex:1410, usdEst:round2(200000/1410), pagada:true, fechaPago:fecha(2026,3,20), tcReal:1410, usdReal:round2(200000/1410), nota:'Pago parcial — refinanciada' },
+    { n:1, fecha:fecha(2026,1), monto:a1.sched[0].cuota, capital:a1.sched[0].capital, interes:a1.sched[0].interes, saldo:a1.sched[0].saldo, tcRofex:1496, usdEst:round2(a1.sched[0].cuota/1496), pagada:true, fechaPago:fecha(2026,1,10), tcReal:1496, usdReal:round2(a1.sched[0].cuota/1496) },
+    { n:2, fecha:fecha(2026,2), monto:a1.sched[1].cuota, capital:a1.sched[1].capital, interes:a1.sched[1].interes, saldo:a1.sched[1].saldo, tcRofex:1445, usdEst:round2(a1.sched[1].cuota/1445), pagada:true, fechaPago:fecha(2026,2,10), tcReal:1445, usdReal:round2(a1.sched[1].cuota/1445) },
+    { n:3, fecha:fecha(2026,3), monto:200000, capital:capPagadoC3, interes:intC3, saldo:saldoTrasC3, tcRofex:1410, usdEst:round2(200000/1410), pagada:true, fechaPago:fecha(2026,3,20), tcReal:1410, usdReal:round2(200000/1410), nota:'Pago parcial $200k — refinanciada' },
     { n:4, fecha:fecha(2026,4), monto:cuota4Ref, capital:saldoTrasC3, interes:round2(saldoTrasC3*r85), saldo:0, tcRofex:null, usdEst:null, pagada:false, fechaPago:null, tcReal:null, usdReal:null, nota:'Refinanciada (saldo + interés)' },
   ];
-  S.prestamos.push({ id: p2id, nombre: 'Andrea', capital: 1000000, tcHoy: 1495, usdInvertidos: round2(1000000/1495), tna: 85, numCuotas: 4, fechaInicio: fecha(2026,2), notas: 'C3 pago parcial $200k — refinanciada', cuota: a1.cuota, cuotas: cuotasA1, estado: 'atrasado', creado: fecha(2026,1,25) });
+  S.prestamos.push({ id: p2id, nombre: 'Andrea', capital: 1000000, tcHoy: 1495, usdInvertidos: round2(1000000/1495), tna: 85, numCuotas: 4, fechaInicio: fecha(2026,1), notas: 'C3 pago parcial $200k — refinanciada', cuota: a1.cuota, cuotas: cuotasA1, estado: 'atrasado', creado: fecha(2025,12,20) });
   [cuotasA1[0], cuotasA1[1], cuotasA1[2]].forEach(c => {
     S.historial.push({ id: uid(), prestamoId: p2id, nombre: 'Andrea', cuotaN: c.n, monto: c.monto, tcReal: c.tcReal, usdReal: c.usdReal, usdEst: c.usdEst, fecha: c.fechaPago });
   });
 
-  // ── 3. MONI (2) — COMPLETADO (compra directa) ──
+  // ── 3. MONI (2) — COMPLETADO (pago único Diciembre 2025) ──
   const p3id = uid();
   const cuotaM2 = 520000;
   const usdEstM2 = round2(500000/1495);
   const usdRealM2 = round2(520000/1466);
-  S.prestamos.push({ id: p3id, nombre: 'Moni (2)', capital: 500000, tcHoy: 1495, usdInvertidos: round2(500000/1495), tna: 0, numCuotas: 1, fechaInicio: fecha(2026,2), notas: 'Compra directa — cobro único $520k', cuota: cuotaM2, cuotas: [
-    { n:1, fecha:fecha(2026,2), monto:cuotaM2, capital:cuotaM2, interes:0, saldo:0, tcRofex:1466, usdEst:round2(520000/1466), pagada:true, fechaPago:fecha(2026,2,10), tcReal:1466, usdReal:round2(520000/1466) }
-  ], estado: 'cancelado', creado: fecha(2026,2,1) });
-  S.historial.push({ id: uid(), prestamoId: p3id, nombre: 'Moni (2)', cuotaN: 1, monto: cuotaM2, tcReal: 1466, usdReal: usdRealM2, usdEst: usdEstM2, fecha: fecha(2026,2,10) });
+  S.prestamos.push({ id: p3id, nombre: 'Moni (2)', capital: 500000, tcHoy: 1495, usdInvertidos: round2(500000/1495), tna: 0, numCuotas: 1, fechaInicio: fecha(2025,12), notas: 'Compra directa — cobro único $520k', cuota: cuotaM2, cuotas: [
+    { n:1, fecha:fecha(2025,12), monto:cuotaM2, capital:cuotaM2, interes:0, saldo:0, tcRofex:1466, usdEst:round2(520000/1466), pagada:true, fechaPago:fecha(2025,12,15), tcReal:1466, usdReal:round2(520000/1466) }
+  ], estado: 'cancelado', creado: fecha(2025,12,1) });
+  S.historial.push({ id: uid(), prestamoId: p3id, nombre: 'Moni (2)', cuotaN: 1, monto: cuotaM2, tcReal: 1466, usdReal: usdRealM2, usdEst: usdEstM2, fecha: fecha(2025,12,15) });
 
-  // ── 4. MONI (3) — 2/12 pagadas ──
+  // ── 4. MONI (3) — 2/12 pagadas (Feb y Mar 2026) ──
+  // Cuotas 3-12 desde Abr 2026, sin TC Rofex todavía → TIR = —
   const p4id = uid();
   const m3 = french(2000000, 68, 12);
   const tcsM3 = [1448, 1410];
-  const cuotasM3 = m3.sched.map((s, i) => ({
-    n: s.n, fecha: fecha(2026, 2 + i), monto: s.cuota,
-    capital: s.capital, interes: s.interes, saldo: s.saldo,
-    tcRofex: i < 2 ? tcsM3[i] : null, usdEst: i < 2 ? round2(s.cuota / tcsM3[i]) : null,
-    pagada: i < 2, fechaPago: i < 2 ? fecha(2026, 2 + i, 5) : null,
-    tcReal: i < 2 ? tcsM3[i] : null, usdReal: i < 2 ? round2(s.cuota / tcsM3[i]) : null,
-  }));
+  const cuotasM3 = m3.sched.map((s, i) => {
+    const esPagada = i < 2;
+    // fechas: feb, mar, abr, may, jun, jul, ago, sep, oct, nov, dic, ene(2027)
+    const mesOffset = i < 10 ? fecha(2026, 2 + i) : fecha(2027, i - 10 + 1);
+    return {
+      n: s.n, fecha: mesOffset, monto: s.cuota,
+      capital: s.capital, interes: s.interes, saldo: s.saldo,
+      tcRofex: esPagada ? tcsM3[i] : null,
+      usdEst: esPagada ? round2(s.cuota / tcsM3[i]) : null,
+      pagada: esPagada,
+      fechaPago: esPagada ? fecha(2026, 2 + i, 5) : null,
+      tcReal: esPagada ? tcsM3[i] : null,
+      usdReal: esPagada ? round2(s.cuota / tcsM3[i]) : null,
+    };
+  });
   S.prestamos.push({ id: p4id, nombre: 'Moni (3)', capital: 2000000, tcHoy: 1538, usdInvertidos: round2(2000000/1538), tna: 68, numCuotas: 12, fechaInicio: fecha(2026,2), notas: '', cuota: m3.cuota, cuotas: cuotasM3, estado: 'activo', creado: fecha(2026,1,28) });
   cuotasM3.filter(c => c.pagada).forEach(c => {
     S.historial.push({ id: uid(), prestamoId: p4id, nombre: 'Moni (3)', cuotaN: c.n, monto: c.monto, tcReal: c.tcReal, usdReal: c.usdReal, usdEst: c.usdEst, fecha: c.fechaPago });
   });
 
-  // ── 5. MA — por cobrar ──
+  // ── 5. MA — primera cuota Abr 2026 ──
   const p5id = uid();
   const ma = french(350000, 70, 4);
   const cuotasMA = ma.sched.map((s, i) => ({
@@ -478,7 +487,7 @@ function buildInitialData() {
   }));
   S.prestamos.push({ id: p5id, nombre: 'MA', capital: 350000, tcHoy: 1440, usdInvertidos: round2(350000/1440), tna: 70, numCuotas: 4, fechaInicio: fecha(2026,4), notas: '', cuota: ma.cuota, cuotas: cuotasMA, estado: 'activo', creado: fecha(2026,3,20) });
 
-  // ── 6. MATÍAS C — por cobrar ──
+  // ── 6. MATÍAS C — primera cuota Abr 2026 ──
   const p6id = uid();
   const mc = french(465000, 70, 5);
   const cuotasMC = mc.sched.map((s, i) => ({
@@ -489,7 +498,7 @@ function buildInitialData() {
   }));
   S.prestamos.push({ id: p6id, nombre: 'Matías C', capital: 465000, tcHoy: 1463, usdInvertidos: round2(465000/1463), tna: 70, numCuotas: 5, fechaInicio: fecha(2026,4), notas: '', cuota: mc.cuota, cuotas: cuotasMC, estado: 'activo', creado: fecha(2026,3,20) });
 
-  // ── 7. ANDREA (2) — por cobrar ──
+  // ── 7. ANDREA (2) — cuota única Abr 2026 ──
   const p7id = uid();
   const a2 = french(200000, 80, 1);
   const cuotasA2 = [{
@@ -708,9 +717,9 @@ function getEstado(p) {
 function getSaldo(p) { return p.cuotas.filter(c => !c.pagada).reduce((s, c) => s + c.monto, 0); }
 function getUsdPendiente(p) { return p.cuotas.filter(c => !c.pagada && c.usdEst).reduce((s, c) => s + c.usdEst, 0); }
 function getTirPrestamo(p) {
-  const cuotasConUsd = p.cuotas.filter(c => c.usdEst);
-  if (cuotasConUsd.length === 0) return null;
-  return tirAnual(p.usdInvertidos, p.cuotas.map(c => ({ usdEst: c.usdEst || 0 })));
+  // TIR solo valida si TODAS las cuotas tienen usdEst cargado
+  if (!p.cuotas.every(c => c.usdEst)) return null;
+  return tirAnual(p.usdInvertidos, p.cuotas.map(c => ({ usdEst: c.usdEst })));
 }
 function getUsdRecuperado(p) { return p.cuotas.filter(c => c.usdReal).reduce((s, c) => s + c.usdReal, 0); }
 
