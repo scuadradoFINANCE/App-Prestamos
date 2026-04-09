@@ -516,20 +516,45 @@ function r2(n) { return Math.round(n * 100) / 100; }
 //  STATE
 // ══════════════════════════════════════════════
 let S = { pin: '1234', gasUrl: '', prestamos: [], historial: [], rofex: {} };
-// rofex: { "2026-04": 1520, "2026-05": 1600, ... }
 let editId = null, curFilter = 'todos', pinBuf = '', pinFails = 0, charts = {};
 let pagoData = null, refiData = null;
 
-function save() { localStorage.setItem('pt4', JSON.stringify(S)); }
+const STORAGE_KEY = 'pt4_v2';
+const INIT_FLAG   = 'pt4_initialized';
+
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(S));
+}
+
 function load() {
-  try { const r = localStorage.getItem('pt4'); if (r) { const d = JSON.parse(r); S = { ...S, ...d }; } } catch(e) {}
+  try {
+    // Intentar cargar desde la key actual
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const d = JSON.parse(raw);
+      S = { ...S, ...d };
+      return;
+    }
+    // Migrar desde key vieja si existe
+    const old = localStorage.getItem('pt4');
+    if (old) {
+      const d = JSON.parse(old);
+      S = { ...S, ...d };
+      save(); // guardar con nueva key
+      localStorage.removeItem('pt4');
+    }
+  } catch(e) { console.error('Error cargando estado:', e); }
 }
 
 // ══════════════════════════════════════════════
 //  DATA INICIAL — 7 préstamos reales
 // ══════════════════════════════════════════════
 function buildInitialData() {
-  if (S.prestamos.length > 0) return;
+  // Si ya se inicializó alguna vez, nunca volver a correr
+  if (localStorage.getItem(INIT_FLAG)) return;
+  // Si ya hay préstamos cargados (migración), solo marcar el flag
+  if (S.prestamos.length > 0) { localStorage.setItem(INIT_FLAG, '1'); return; }
+
   const f = (y, m, d=1) => `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
 
   // ── 1. MONI (1) COMPLETADO ──────────────────
@@ -608,6 +633,7 @@ function buildInitialData() {
     cuotas:[{ n:1, fecha:f(2026,4), monto:a2.cuota, capital:a2.sched[0].capital, interes:a2.sched[0].interes, saldo:0, tcRofex:null, usdEst:null, pagada:false, fechaPago:null, tcReal:null, usdReal:null }],
     estado:'activo', creado:f(2026,3,20) });
 
+  localStorage.setItem(INIT_FLAG, '1');
   save();
 }
 
@@ -1424,7 +1450,18 @@ function renderCharts() {
 // ══════════════════════════════════════════════
 //  CONFIG
 // ══════════════════════════════════════════════
-function saveGasUrl(){S.gasUrl=document.getElementById('gasUrl').value.trim();save();document.getElementById('gasStatus').textContent=S.gasUrl?'✓ URL guardada':'Sin conectar — datos guardados localmente';}
+function saveGasUrl(){
+  S.gasUrl=document.getElementById('gasUrl').value.trim();
+  save();
+  const st=document.getElementById('gasStatus');
+  if(S.gasUrl){
+    st.textContent='✓ URL guardada — hacé click en "↑ Sync" para sincronizar';
+    st.style.color='#4edea3';
+  } else {
+    st.textContent='Sin conectar — datos guardados localmente';
+    st.style.color='#475569';
+  }
+}
 function cambiarPin(){
   const a=document.getElementById('pinActual').value,n=document.getElementById('pinNuevo').value,msg=document.getElementById('pinMsg');
   if(a!==S.pin){msg.style.color='#ffb4ab';msg.textContent='PIN actual incorrecto.';return;}
@@ -1449,9 +1486,19 @@ function setSyncUI(s){
 }
 async function syncData(manual=false){
   if(!S.gasUrl){if(manual)alert('Configurá la URL del Apps Script en Config.');return;}
+  // Protección: no subir si no hay datos cargados
+  if(S.prestamos.length===0 && !manual){return;}
+  if(S.prestamos.length===0 && manual){
+    if(!confirm('El estado local está vacío. ¿Seguro que querés subir y borrar los datos en Sheets?')) return;
+  }
   setSyncUI('syncing');
-  try{await fetch(S.gasUrl,{method:'POST',body:JSON.stringify({action:'save',data:S})});setSyncUI('ok');}
-  catch(e){setSyncUI('error');if(manual)alert('Error al conectar. Verificá la URL.');}
+  try{
+    await fetch(S.gasUrl,{method:'POST',body:JSON.stringify({action:'save',data:S})});
+    setSyncUI('ok');
+  } catch(e){
+    setSyncUI('error');
+    if(manual)alert('Error al conectar. Verificá la URL.');
+  }
 }
 
 // ══════════════════════════════════════════════
