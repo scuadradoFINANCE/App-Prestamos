@@ -528,22 +528,67 @@ function save() {
 
 function load() {
   try {
-    // Intentar cargar desde la key actual
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const d = JSON.parse(raw);
-      S = { ...S, ...d };
-      return;
-    }
-    // Migrar desde key vieja si existe
+    if (raw) { const d = JSON.parse(raw); S = { ...S, ...d }; return; }
+    // Migrar desde key vieja
     const old = localStorage.getItem('pt4');
-    if (old) {
-      const d = JSON.parse(old);
-      S = { ...S, ...d };
-      save(); // guardar con nueva key
-      localStorage.removeItem('pt4');
-    }
+    if (old) { const d = JSON.parse(old); S = { ...S, ...d }; save(); localStorage.removeItem('pt4'); }
   } catch(e) { console.error('Error cargando estado:', e); }
+}
+
+// Lee el estado desde Google Sheets via JSONP
+function loadFromSheets(onDone) {
+  if (!S.gasUrl) { if(onDone) onDone(false); return; }
+  const cbName = 'pt_cb_' + Date.now();
+  const script = document.createElement('script');
+  const timeout = setTimeout(() => {
+    script.remove();
+    delete window[cbName];
+    if(onDone) onDone(false);
+  }, 8000);
+  window[cbName] = function(data) {
+    clearTimeout(timeout);
+    script.remove();
+    delete window[cbName];
+    if (data && data.error) { console.warn('Sheets error:', data.error); if(onDone) onDone(false); return; }
+    if (data && Array.isArray(data.prestamos)) {
+      // Sheets tiene datos — comparar cuál es más reciente
+      const sheetsCount = data.prestamos.length;
+      const localCount  = S.prestamos.length;
+      // Usar Sheets si tiene más datos o si local estaba vacío
+      if (sheetsCount >= localCount || localCount === 0) {
+        // Preservar gasUrl y pin del local (no los guarda Sheets)
+        const gasUrl = S.gasUrl;
+        const pin    = S.pin;
+        S = { ...data, gasUrl, pin };
+        save();
+        renderAll();
+        setSyncUI('ok');
+        setTimeout(() => setSyncUI(''), 3000);
+      }
+    }
+    if(onDone) onDone(true);
+  };
+  script.src = S.gasUrl + '?callback=' + cbName + '&t=' + Date.now();
+  document.head.appendChild(script);
+}
+
+// Sincroniza: primero sube, después confirma
+async function syncData(manual=false) {
+  if (!S.gasUrl) { if(manual) alert('Configurá la URL del Apps Script en Config.'); return; }
+  if (S.prestamos.length === 0 && !manual) return;
+  if (S.prestamos.length === 0 && manual) {
+    if (!confirm('El estado local está vacío. ¿Seguro que querés subir y borrar los datos en Sheets?')) return;
+  }
+  setSyncUI('syncing');
+  try {
+    await fetch(S.gasUrl, { method:'POST', body:JSON.stringify({ action:'save', data:S }) });
+    setSyncUI('ok');
+    setTimeout(() => setSyncUI(''), 4000);
+  } catch(e) {
+    setSyncUI('error');
+    if(manual) alert('Error al conectar. Verificá la URL en Config.');
+  }
 }
 
 // ══════════════════════════════════════════════
@@ -644,7 +689,12 @@ function pp(d) {
   if (pinFails >= 5) return;
   pinBuf += d; upDots();
   if (pinBuf.length === 4) setTimeout(() => {
-    if (pinBuf === S.pin) { document.getElementById('lockScreen').style.display='none'; document.getElementById('app').style.display='block'; renderAll(); }
+    if (pinBuf === S.pin) {
+      document.getElementById('lockScreen').style.display='none';
+      document.getElementById('app').style.display='block';
+      renderAll();
+      initAfterUnlock();
+    }
     else { pinFails++; document.getElementById('pinErr').textContent = pinFails >= 5 ? 'Bloqueado. Recargá la página.' : `PIN incorrecto (${5-pinFails} intentos)`; pinBuf=''; upDots(); }
   }, 200);
 }
@@ -1455,8 +1505,18 @@ function saveGasUrl(){
   save();
   const st=document.getElementById('gasStatus');
   if(S.gasUrl){
-    st.textContent='✓ URL guardada — hacé click en "↑ Sync" para sincronizar';
-    st.style.color='#4edea3';
+    st.textContent='Conectando con Sheets...';
+    st.style.color='#fbbf24';
+    // Leer desde Sheets inmediatamente
+    loadFromSheets((ok) => {
+      if(ok){
+        st.textContent='✓ Conectado — datos cargados desde Sheets';
+        st.style.color='#4edea3';
+      } else {
+        st.textContent='URL guardada — no se pudo leer (verificá la URL y los permisos)';
+        st.style.color='#ffb95f';
+      }
+    });
   } else {
     st.textContent='Sin conectar — datos guardados localmente';
     st.style.color='#475569';
@@ -1484,23 +1544,6 @@ function setSyncUI(s){
   else if(s==='error'){dot.style.background='#ffb4ab';txt.textContent='Error sync';}
   else{dot.style.background='#374151';txt.textContent='Local';}
 }
-async function syncData(manual=false){
-  if(!S.gasUrl){if(manual)alert('Configurá la URL del Apps Script en Config.');return;}
-  // Protección: no subir si no hay datos cargados
-  if(S.prestamos.length===0 && !manual){return;}
-  if(S.prestamos.length===0 && manual){
-    if(!confirm('El estado local está vacío. ¿Seguro que querés subir y borrar los datos en Sheets?')) return;
-  }
-  setSyncUI('syncing');
-  try{
-    await fetch(S.gasUrl,{method:'POST',body:JSON.stringify({action:'save',data:S})});
-    setSyncUI('ok');
-  } catch(e){
-    setSyncUI('error');
-    if(manual)alert('Error al conectar. Verificá la URL.');
-  }
-}
-
 // ══════════════════════════════════════════════
 //  UTILS
 // ══════════════════════════════════════════════
@@ -1517,6 +1560,23 @@ function formatMes(m){if(!m)return'—';const[y,mo]=m.split('-');return MNS[pars
 // ══════════════════════════════════════════════
 load();
 buildInitialData();
+
+// Al abrir la app, mostrar un indicador de carga desde Sheets
+// Se dispara después de que el usuario ingresa el PIN
+const _origUnlock = pp;
+function initAfterUnlock() {
+  // Intentar leer desde Sheets en background
+  if (S.gasUrl) {
+    // Mostrar indicador de carga en sidebar
+    const dot = document.getElementById('syncDot');
+    const txt = document.getElementById('syncTxt');
+    if (dot) { dot.style.background = '#fbbf24'; dot.style.animation = 'pulse 1s infinite'; }
+    if (txt) txt.textContent = 'Cargando...';
+    loadFromSheets(() => {
+      if (dot) dot.style.animation = '';
+    });
+  }
+}
 </script>
 </body>
 </html>
