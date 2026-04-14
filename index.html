@@ -651,7 +651,7 @@ function buildInitialData() {
   const tcsM3paid = [1448,1410];
   const cuotasM3 = m3.sched.map((s,i) => {
     const paid = i < 2;
-    const mes = i < 10 ? f(2026, 2+i) : f(2027, i-10+1);
+    const mes = (() => { const d = new Date('2026-02-01T12:00:00'); d.setMonth(d.getMonth()+i); return d.toISOString().slice(0,10); })();
     return { n:s.n, fecha:mes, monto:s.cuota, capital:s.capital, interes:s.interes, saldo:s.saldo,
       tcRofex: paid ? tcsM3paid[i] : null, usdEst: paid ? r2(s.cuota/tcsM3paid[i]) : null,
       pagada: paid, fechaPago: paid ? f(2026,2+i,5) : null,
