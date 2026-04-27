@@ -536,28 +536,20 @@ function load() {
   } catch(e) { console.error('Error cargando estado:', e); }
 }
 
-// Lee el estado desde Google Sheets via JSONP
+// Lee el estado desde Google Sheets via POST (no necesita doGet)
 function loadFromSheets(onDone) {
   if (!S.gasUrl) { if(onDone) onDone(false); return; }
-  const cbName = 'pt_cb_' + Date.now();
-  const script = document.createElement('script');
-  const timeout = setTimeout(() => {
-    script.remove();
-    delete window[cbName];
-    if(onDone) onDone(false);
-  }, 8000);
-  window[cbName] = function(data) {
-    clearTimeout(timeout);
-    script.remove();
-    delete window[cbName];
-    if (data && data.error) { console.warn('Sheets error:', data.error); if(onDone) onDone(false); return; }
+  fetch(S.gasUrl, {
+    method: 'POST',
+    body: JSON.stringify({ action: 'load' })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (!data || data.error) { console.warn('Sheets load error:', data?.error); if(onDone) onDone(false); return; }
     if (data && Array.isArray(data.prestamos)) {
-      // Sheets tiene datos — comparar cuál es más reciente
       const sheetsCount = data.prestamos.length;
       const localCount  = S.prestamos.length;
-      // Usar Sheets si tiene más datos o si local estaba vacío
       if (sheetsCount >= localCount || localCount === 0) {
-        // Preservar gasUrl y pin del local (no los guarda Sheets)
         const gasUrl = S.gasUrl;
         const pin    = S.pin;
         S = { ...data, gasUrl, pin };
@@ -568,9 +560,11 @@ function loadFromSheets(onDone) {
       }
     }
     if(onDone) onDone(true);
-  };
-  script.src = S.gasUrl + '?callback=' + cbName + '&t=' + Date.now();
-  document.head.appendChild(script);
+  })
+  .catch(err => {
+    console.warn('loadFromSheets error:', err);
+    if(onDone) onDone(false);
+  });
 }
 
 // Sincroniza: primero sube, después confirma
