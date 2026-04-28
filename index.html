@@ -12,7 +12,6 @@
 tailwind.config={darkMode:"class",theme:{extend:{colors:{
   surface:"#0b1326","surface-container":"#171f33","surface-container-low":"#131b2e",
   "surface-container-high":"#222a3d","surface-bright":"#31394d",
-  "on-surface":"#dae2fd","on-surface-variant":"#c2c6d6",
   primary:"#adc6ff","on-primary":"#002e6a",
   secondary:"#4edea3","on-secondary":"#003824",
   tertiary:"#ffb95f",error:"#ffb4ab","on-error":"#690005"
@@ -41,13 +40,13 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
 ::-webkit-scrollbar{width:4px;height:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:#424754;border-radius:2px;}
 @keyframes slideUp{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes spin{to{transform:rotate(360deg)}}
 .pin-k{background:#171f33;border:1px solid rgba(255,255,255,0.06);color:#f1f5f9;font-weight:700;font-size:20px;padding:15px;border-radius:11px;cursor:pointer;transition:all .15s;font-family:Inter,sans-serif;}
 .pin-k:hover{background:#222a3d;}.pin-k:active{transform:scale(.95);}
 .kpi-card{background:#171f33;border-radius:13px;border:1px solid rgba(255,255,255,0.03);padding:22px;transition:transform .2s;}
 .kpi-card:hover{transform:translateY(-1px);}
 .card-block{background:#171f33;border-radius:13px;border:1px solid rgba(255,255,255,0.03);overflow:hidden;}
 .section-title{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.2em;color:#8892aa;margin-bottom:14px;}
-/* Rofex panel */
 .rofex-month-input{background:#0b1326;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:7px 10px;font-size:12px;color:#f1f5f9;outline:none;font-family:Inter,sans-serif;width:100%;transition:border-color .2s;box-sizing:border-box;}
 .rofex-month-input:focus{border-color:rgba(255,185,95,0.5);}
 .rofex-month-input.filled{border-color:rgba(78,222,163,0.3);color:#4edea3;}
@@ -77,6 +76,12 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
   <p style="color:#374151;font-size:11px">PIN: 1234</p>
 </div>
 
+<!-- ══ LOADING ══ -->
+<div id="loadingScreen" style="display:none;position:fixed;inset:0;z-index:190;background:#0b1326;flex-direction:column;align-items:center;justify-content:center;gap:16px;">
+  <div style="width:32px;height:32px;border:3px solid rgba(78,222,163,0.2);border-top-color:#4edea3;border-radius:50%;animation:spin 0.8s linear infinite"></div>
+  <div style="font-size:12px;color:#475569;font-weight:600;text-transform:uppercase;letter-spacing:.1em">Cargando desde Sheets...</div>
+</div>
+
 <!-- ══ APP ══ -->
 <div id="app" style="display:none">
 
@@ -94,7 +99,6 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
     <div class="nav-link" onclick="showTab('analytics',this)"><span class="ms">analytics</span><span>Analytics</span></div>
     <div class="nav-link" onclick="showTab('config',this)"><span class="ms">settings</span><span>Config</span></div>
   </nav>
-  <!-- USD sidebar widget -->
   <div style="margin-top:auto;background:#171f33;border-radius:11px;border:1px solid rgba(255,255,255,0.04);padding:15px">
     <div style="font-size:9px;text-transform:uppercase;letter-spacing:.15em;color:#64748b;font-weight:700;margin-bottom:8px">USD en la calle</div>
     <div id="sideUSD" style="font-size:21px;font-weight:900;letter-spacing:-.03em;color:#4edea3">—</div>
@@ -102,7 +106,7 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
     <div id="sideTIR" style="font-size:10px;color:#64748b;margin-top:2px"></div>
     <div style="margin-top:11px;padding-top:11px;border-top:1px solid rgba(255,255,255,0.04);display:flex;align-items:center;gap:6px">
       <span id="syncDot" style="width:6px;height:6px;border-radius:50%;background:#374151;flex-shrink:0"></span>
-      <span id="syncTxt" style="font-size:9px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:#475569">Local</span>
+      <span id="syncTxt" style="font-size:9px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:#475569">Sheets</span>
     </div>
   </div>
 </aside>
@@ -118,12 +122,12 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
       <span style="width:6px;height:6px;border-radius:50%;background:#fbbf24;animation:pulse 1s infinite"></span>Guardando...
     </div>
     <div id="syncOk" style="display:none;align-items:center;gap:5px;font-size:10px;font-weight:700;text-transform:uppercase;color:#4edea3">
-      <span class="ms" style="font-size:13px">cloud_done</span>Sincronizado
+      <span class="ms" style="font-size:13px">cloud_done</span>Guardado
     </div>
     <span id="dateStr" style="color:#8892aa;font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:600"></span>
     <div style="width:1px;height:13px;background:rgba(255,255,255,0.08)"></div>
-    <button onclick="syncData(true)" style="background:#222a3d;color:#94a3b8;border:1px solid rgba(255,255,255,0.08);font-weight:700;padding:7px 13px;border-radius:9px;font-size:11px;cursor:pointer;display:flex;align-items:center;gap:4px;text-transform:uppercase;font-family:Inter,sans-serif;transition:all .2s" onmouseover="this.style.color='#f1f5f9'" onmouseout="this.style.color='#94a3b8'">
-      <span class="ms" style="font-size:14px">cloud_upload</span>Sync
+    <button onclick="recargarDesdeSheets()" style="background:#222a3d;color:#94a3b8;border:1px solid rgba(255,255,255,0.08);font-weight:700;padding:7px 13px;border-radius:9px;font-size:11px;cursor:pointer;display:flex;align-items:center;gap:4px;text-transform:uppercase;font-family:Inter,sans-serif;transition:all .2s" onmouseover="this.style.color='#f1f5f9'" onmouseout="this.style.color='#94a3b8'">
+      <span class="ms" style="font-size:14px">refresh</span>Recargar
     </button>
     <button onclick="openModal()" style="background:#adc6ff;color:#002e6a;font-weight:700;padding:7px 16px;border-radius:9px;border:none;font-size:11px;cursor:pointer;display:flex;align-items:center;gap:4px;text-transform:uppercase;font-family:Inter,sans-serif;">
       <span class="ms" style="font-size:14px">add</span>Nuevo Préstamo
@@ -133,27 +137,23 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
 
 <main style="margin-left:236px;padding-top:58px;min-height:100vh">
 
-<!-- ══ DASHBOARD ══ -->
+<!-- DASHBOARD -->
 <div id="tab-dashboard" class="tab active" style="padding:28px">
   <div style="margin-bottom:6px">
     <h2 style="font-size:21px;font-weight:800;letter-spacing:-.02em;color:#f1f5f9">Dashboard</h2>
     <p id="dashSub" style="color:#8892aa;font-size:12px;margin-top:2px"></p>
   </div>
   <div id="kpiCards" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:20px;margin-bottom:28px"></div>
-
-  <!-- Alerta Rofex -->
-  <div id="rofexAlerta" style="display:none;background:rgba(255,185,95,0.08);border:1px solid rgba(255,185,95,0.2);border-radius:11px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:12px;cursor:pointer" onclick="showTab('rofex',document.querySelectorAll('.nav-link')[2])">
+  <div id="rofexAlerta" style="display:none;background:rgba(255,185,95,0.08);border:1px solid rgba(255,185,95,0.2);border-radius:11px;padding:14px 18px;margin-bottom:20px;align-items:center;gap:12px;cursor:pointer" onclick="showTab('rofex',document.querySelectorAll('.nav-link')[2])">
     <span class="ms" style="color:#ffb95f;font-size:20px">warning</span>
     <div style="flex:1">
       <div id="rofexAlertaTxt" style="font-size:13px;font-weight:700;color:#ffb95f"></div>
-      <div style="font-size:11px;color:#8892aa;margin-top:2px">Hacé click para ir al Panel Rofex y cargar los precios →</div>
+      <div style="font-size:11px;color:#8892aa;margin-top:2px">Hacé click para ir al Panel Rofex →</div>
     </div>
   </div>
-
-  <!-- Cuotas mes -->
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
     <div>
-      <h3 style="font-size:16px;font-weight:800;letter-spacing:-.01em;color:#f1f5f9">Cuotas de este mes</h3>
+      <h3 style="font-size:16px;font-weight:800;color:#f1f5f9">Cuotas de este mes</h3>
       <p id="dashMonthLbl" style="color:#8892aa;font-size:11px;margin-top:1px"></p>
     </div>
   </div>
@@ -171,11 +171,11 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
   </div>
 </div>
 
-<!-- ══ PRÉSTAMOS ══ -->
+<!-- PRÉSTAMOS -->
 <div id="tab-prestamos" class="tab" style="padding:28px">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
     <div>
-      <h2 style="font-size:21px;font-weight:800;letter-spacing:-.02em;color:#f1f5f9">Préstamos</h2>
+      <h2 style="font-size:21px;font-weight:800;color:#f1f5f9">Préstamos</h2>
       <p style="color:#8892aa;font-size:12px;margin-top:2px">Registro completo · rendimiento en USD</p>
     </div>
     <button onclick="openModal()" style="background:#adc6ff;color:#002e6a;font-weight:700;padding:8px 16px;border-radius:9px;border:none;font-size:11px;cursor:pointer;display:flex;align-items:center;gap:4px;text-transform:uppercase;font-family:Inter,sans-serif;">
@@ -195,14 +195,12 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
   </div>
 </div>
 
-<!-- ══ PANEL ROFEX ══ -->
+<!-- PANEL ROFEX -->
 <div id="tab-rofex" class="tab" style="padding:28px">
   <div style="margin-bottom:20px">
-    <h2 style="font-size:21px;font-weight:800;letter-spacing:-.02em;color:#f1f5f9">Panel Rofex</h2>
+    <h2 style="font-size:21px;font-weight:800;color:#f1f5f9">Panel Rofex</h2>
     <p style="color:#8892aa;font-size:12px;margin-top:2px">TC futuro estimado · Matba Rofex</p>
   </div>
-
-  <!-- Indicador de cobertura -->
   <div id="rofexCobertura" style="background:#171f33;border-radius:13px;border:1px solid rgba(255,185,95,0.15);padding:20px;margin-bottom:20px">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
       <span class="ms" style="color:#ffb95f">show_chart</span>
@@ -211,7 +209,6 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
         <div id="rofexCoberturaDesc" style="font-size:11px;color:#8892aa;margin-top:1px"></div>
       </div>
     </div>
-    <!-- Grid de meses a cargar -->
     <div id="rofexGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px"></div>
     <div style="margin-top:14px;display:flex;justify-content:flex-end">
       <button onclick="guardarRofex()" style="background:#ffb95f;color:#3e2400;border:none;padding:8px 20px;border-radius:9px;font-size:11px;font-weight:900;cursor:pointer;text-transform:uppercase;letter-spacing:.08em;font-family:Inter,sans-serif;display:flex;align-items:center;gap:5px">
@@ -219,51 +216,39 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
       </button>
     </div>
   </div>
-
-  <!-- Proyección por préstamo -->
   <div class="card-block" style="margin-bottom:20px">
     <div style="padding:18px 20px;border-bottom:1px solid rgba(255,255,255,0.03)">
       <div class="section-title" style="margin-bottom:0">Estimativo USD por préstamo</div>
     </div>
     <div id="rofexPorPrestamo" style="padding:16px 20px;display:flex;flex-direction:column;gap:10px"></div>
   </div>
-
-  <!-- Proyección mensual -->
   <div class="card-block">
     <div style="padding:18px 20px;border-bottom:1px solid rgba(255,255,255,0.03)">
-      <div class="section-title" style="margin-bottom:0">Estimativo USD mes a mes (cartera completa)</div>
+      <div class="section-title" style="margin-bottom:0">Estimativo USD mes a mes</div>
     </div>
-    <div id="rofexMesAMes" style="padding:0">
-      <table style="width:100%;border-collapse:collapse">
-        <thead><tr style="background:#222a3d">
-          <th class="th">Mes</th>
-          <th class="th">TC Rofex</th>
-          <th class="th">Cuotas</th>
-          <th class="th">$ a cobrar</th>
-          <th class="th">USD estimado</th>
-          <th class="th">Acumulado USD</th>
-        </tr></thead>
-        <tbody id="rofexMesaTbody"></tbody>
-      </table>
-    </div>
-    <!-- Total estimado -->
-    <div id="rofexTotalRow" style="padding:16px 20px;border-top:1px solid rgba(255,255,255,0.05);display:flex;justify-content:space-between;align-items:center">
+    <table style="width:100%;border-collapse:collapse">
+      <thead><tr style="background:#222a3d">
+        <th class="th">Mes</th><th class="th">TC Rofex</th><th class="th">Cuotas</th><th class="th">$ a cobrar</th><th class="th">USD estimado</th><th class="th">Acumulado USD</th>
+      </tr></thead>
+      <tbody id="rofexMesaTbody"></tbody>
+    </table>
+    <div style="padding:16px 20px;border-top:1px solid rgba(255,255,255,0.05);display:flex;justify-content:space-between;align-items:center">
       <div>
         <div style="font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.18em;color:#64748b">TOTAL ESTIMADO A RECUPERAR</div>
         <div style="font-size:10px;color:#475569;margin-top:2px">(cuotas con TC Rofex cargado)</div>
       </div>
       <div style="text-align:right">
-        <div id="rofexTotalUSD" style="font-size:22px;font-weight:900;letter-spacing:-.03em;color:#4edea3">—</div>
+        <div id="rofexTotalUSD" style="font-size:22px;font-weight:900;color:#4edea3">—</div>
         <div id="rofexGananciaTotal" style="font-size:11px;color:#64748b;margin-top:2px"></div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ══ HISTORIAL ══ -->
+<!-- HISTORIAL -->
 <div id="tab-historial" class="tab" style="padding:28px">
   <div style="margin-bottom:20px">
-    <h2 style="font-size:21px;font-weight:800;letter-spacing:-.02em;color:#f1f5f9">Historial de Cobros</h2>
+    <h2 style="font-size:21px;font-weight:800;color:#f1f5f9">Historial de Cobros</h2>
     <p style="color:#8892aa;font-size:12px;margin-top:2px">Pesos cobrados → USD recomprados</p>
   </div>
   <div class="card-block">
@@ -280,10 +265,10 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
   </div>
 </div>
 
-<!-- ══ ANALYTICS ══ -->
+<!-- ANALYTICS -->
 <div id="tab-analytics" class="tab" style="padding:28px">
   <div style="margin-bottom:20px">
-    <h2 style="font-size:21px;font-weight:800;letter-spacing:-.02em;color:#f1f5f9">Analytics USD</h2>
+    <h2 style="font-size:21px;font-weight:800;color:#f1f5f9">Analytics USD</h2>
     <p style="color:#8892aa;font-size:12px;margin-top:2px">Rentabilidad real de tu cartera</p>
   </div>
   <div style="background:#171f33;border-radius:13px;padding:20px;border:1px solid rgba(255,255,255,0.03);margin-bottom:18px">
@@ -306,10 +291,10 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
   </div>
 </div>
 
-<!-- ══ CONFIG ══ -->
+<!-- CONFIG -->
 <div id="tab-config" class="tab" style="padding:28px">
   <div style="margin-bottom:20px">
-    <h2 style="font-size:21px;font-weight:800;letter-spacing:-.02em;color:#f1f5f9">Configuración</h2>
+    <h2 style="font-size:21px;font-weight:800;color:#f1f5f9">Configuración</h2>
   </div>
   <div style="max-width:500px;display:flex;flex-direction:column;gap:18px">
     <div style="background:#171f33;border-radius:13px;padding:22px;border:1px solid rgba(255,255,255,0.03)">
@@ -319,7 +304,7 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
         <input id="gasUrl" type="text" placeholder="https://script.google.com/macros/s/.../exec" class="mi" style="flex:1"/>
         <button onclick="saveGasUrl()" class="cfg-btn">Guardar</button>
       </div>
-      <p id="gasStatus" style="font-size:11px;color:#475569;margin-top:7px">Sin conectar — datos guardados localmente</p>
+      <p id="gasStatus" style="font-size:11px;color:#475569;margin-top:7px">Sin conectar</p>
     </div>
     <div style="background:#171f33;border-radius:13px;padding:22px;border:1px solid rgba(255,255,255,0.03)">
       <div class="section-title">PIN de acceso</div>
@@ -344,12 +329,12 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
 </main>
 </div>
 
-<!-- ══ MODAL NUEVO/EDITAR PRÉSTAMO ══ -->
+<!-- MODAL PRÉSTAMO -->
 <div id="modalOverlay" style="display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto">
   <div style="background:#171f33;border:1px solid rgba(255,255,255,0.08);border-radius:18px;width:100%;max-width:560px;margin:auto;animation:slideUp .25s ease">
     <div style="padding:26px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px">
-        <h3 id="modalTitle" style="font-size:18px;font-weight:800;letter-spacing:-.02em;color:#f1f5f9">Nuevo Préstamo</h3>
+        <h3 id="modalTitle" style="font-size:18px;font-weight:800;color:#f1f5f9">Nuevo Préstamo</h3>
         <button onclick="closeModal()" style="background:none;border:none;color:#64748b;cursor:pointer;padding:3px"><span class="ms">close</span></button>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:13px">
@@ -362,7 +347,6 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
         <div><label class="ml">Primera cuota</label><input id="fFecha" type="date" oninput="calcModal()" class="mi"/></div>
         <div style="grid-column:1/-1"><label class="ml">Notas</label><input id="fNotas" type="text" placeholder="opcional" class="mi"/></div>
       </div>
-      <!-- Resumen preview -->
       <div id="modalCalc" style="display:none;background:#131b2e;border-radius:10px;padding:14px;border:1px solid rgba(255,255,255,0.05);margin-bottom:14px">
         <p style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.2em;color:#64748b;margin-bottom:11px">Proyección — Sistema Francés</p>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;font-size:12px">
@@ -370,17 +354,17 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
           <div style="display:flex;justify-content:space-between;padding:5px 9px;background:rgba(255,255,255,0.02);border-radius:7px"><span style="color:#8892aa">USD invertidos</span><span id="mcUsdInv" style="font-weight:700;color:#4edea3"></span></div>
           <div style="display:flex;justify-content:space-between;padding:5px 9px;background:rgba(255,255,255,0.02);border-radius:7px;grid-column:1/-1"><span style="color:#f1f5f9;font-weight:700">Total a cobrar</span><span id="mcTotal" style="font-weight:900;color:#adc6ff"></span></div>
         </div>
-        <p style="font-size:10px;color:#475569;margin-top:9px"><span class="ms" style="font-size:12px;margin-right:3px">info</span>Cargá los TC Rofex en el Panel Rofex para ver la TIR en USD</p>
+        <p style="font-size:10px;color:#475569;margin-top:9px"><span class="ms" style="font-size:12px;margin-right:3px">info</span>Cargá TC Rofex en el Panel Rofex para ver la TIR en USD</p>
       </div>
       <div style="display:flex;gap:9px;justify-content:flex-end">
-        <button onclick="closeModal()" style="background:#222a3d;color:#94a3b8;border:none;padding:9px 20px;border-radius:9px;font-size:11px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.07em;font-family:Inter,sans-serif">Cancelar</button>
-        <button onclick="guardar()" style="background:#adc6ff;color:#002e6a;border:none;padding:9px 20px;border-radius:9px;font-size:11px;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.07em;font-family:Inter,sans-serif">Guardar</button>
+        <button onclick="closeModal()" style="background:#222a3d;color:#94a3b8;border:none;padding:9px 20px;border-radius:9px;font-size:11px;font-weight:700;cursor:pointer;text-transform:uppercase;font-family:Inter,sans-serif">Cancelar</button>
+        <button onclick="guardar()" style="background:#adc6ff;color:#002e6a;border:none;padding:9px 20px;border-radius:9px;font-size:11px;font-weight:700;cursor:pointer;text-transform:uppercase;font-family:Inter,sans-serif">Guardar</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ══ MODAL COBRAR CUOTA ══ -->
+<!-- MODAL COBRAR -->
 <div id="pagoOverlay" style="display:none;position:fixed;inset:0;z-index:110;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto">
   <div style="background:#171f33;border:1px solid rgba(255,255,255,0.08);border-radius:18px;width:100%;max-width:440px;margin:auto;animation:slideUp .25s ease">
     <div style="padding:26px">
@@ -388,15 +372,11 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
         <h3 id="pagoTitle" style="font-size:16px;font-weight:800;color:#f1f5f9">Registrar cobro</h3>
         <button onclick="closePago()" style="background:none;border:none;color:#64748b;cursor:pointer"><span class="ms">close</span></button>
       </div>
-
-      <!-- Info cuota -->
       <div id="pagoInfo" style="background:#131b2e;border-radius:9px;padding:13px;margin-bottom:14px;font-size:12px"></div>
-
-      <!-- Inputs principales -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:13px">
         <div>
           <label class="ml">Monto cobrado ($)</label>
-          <input id="pagoMonto" type="number" placeholder="monto total de la cuota" oninput="calcPago()" class="mi" style="font-size:13px"/>
+          <input id="pagoMonto" type="number" oninput="calcPago()" class="mi"/>
           <div id="pagoMontoPct" style="font-size:10px;color:#64748b;margin-top:4px;height:13px"></div>
         </div>
         <div>
@@ -404,16 +384,12 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
           <input id="pagoTc" type="number" placeholder="ej: 1520" oninput="calcPago()" class="mi"/>
         </div>
       </div>
-
-      <!-- Resumen cobro normal -->
       <div id="pagoCalc" style="display:none;background:#131b2e;border-radius:9px;padding:13px;margin-bottom:11px;font-size:12px">
         <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:#8892aa">$ Cobrados</span><span id="pcPesos" style="font-weight:700;color:#adc6ff"></span></div>
         <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:#8892aa">USD recomprados</span><span id="pcUsd" style="font-weight:700;color:#4edea3"></span></div>
         <div style="display:flex;justify-content:space-between"><span style="color:#8892aa">USD estimado era</span><span id="pcUsdEst" style="color:#64748b"></span></div>
         <div id="pcDifRow" style="display:flex;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.05)"><span style="color:#8892aa">Diferencia USD</span><span id="pcDif" style="font-weight:700"></span></div>
       </div>
-
-      <!-- Bloque mora — solo aparece si pago parcial -->
       <div id="pagoMoraBloque" style="display:none;background:rgba(255,185,95,0.06);border:1px solid rgba(255,185,95,0.18);border-radius:9px;padding:13px;margin-bottom:11px;font-size:12px">
         <div style="display:flex;align-items:center;gap:7px;margin-bottom:10px">
           <span class="ms" style="color:#ffb95f;font-size:16px">warning</span>
@@ -426,16 +402,15 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
         <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:#8892aa">Nueva cuota (mora)</span><span id="pmNuevaCuota" style="font-weight:900;color:#ffb95f;font-size:13px"></span></div>
         <div style="display:flex;justify-content:space-between"><span style="color:#8892aa">Se agrega para</span><span id="pmFechaMora" style="color:#64748b"></span></div>
       </div>
-
       <div style="display:flex;gap:9px;justify-content:flex-end">
         <button onclick="closePago()" style="background:#222a3d;color:#94a3b8;border:none;padding:9px 18px;border-radius:9px;font-size:11px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">Cancelar</button>
-        <button onclick="confirmarPago()" id="pagoConfirmBtn" style="background:#4edea3;color:#003824;border:none;padding:9px 18px;border-radius:9px;font-size:11px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;text-transform:uppercase;letter-spacing:.06em">Confirmar cobro</button>
+        <button onclick="confirmarPago()" id="pagoConfirmBtn" style="background:#4edea3;color:#003824;border:none;padding:9px 18px;border-radius:9px;font-size:11px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;text-transform:uppercase">Confirmar cobro</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ══ MODAL REFINANCIAR ══ -->
+<!-- MODAL REFINANCIAR -->
 <div id="refiOverlay" style="display:none;position:fixed;inset:0;z-index:115;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:16px">
   <div style="background:#171f33;border:1px solid rgba(255,185,95,0.2);border-radius:18px;width:100%;max-width:420px;animation:slideUp .25s ease">
     <div style="padding:26px">
@@ -445,25 +420,13 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
       </div>
       <div id="refiInfo" style="background:#131b2e;border-radius:9px;padding:13px;margin-bottom:14px;font-size:12px"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:13px">
-        <div>
-          <label class="ml">Saldo impago ($)</label>
-          <input id="refiSaldo" type="number" class="mi" style="color:#ffb95f;font-weight:700;background:#0d1a2e" readonly/>
-        </div>
-        <div>
-          <label class="ml">Tasa refinanc. (%TNA)</label>
-          <input id="refiTasa" type="number" placeholder="ej: 90" step="0.5" oninput="calcRefi()" class="mi"/>
-        </div>
-        <div>
-          <label class="ml">Cuotas adicionales</label>
-          <input id="refiCuotas" type="number" placeholder="1" min="1" max="12" oninput="calcRefi()" class="mi"/>
-        </div>
-        <div>
-          <label class="ml">Primera cuota refi</label>
-          <input id="reFecha" type="date" class="mi"/>
-        </div>
+        <div><label class="ml">Saldo impago ($)</label><input id="refiSaldo" type="number" class="mi" style="color:#ffb95f;font-weight:700;background:#0d1a2e" readonly/></div>
+        <div><label class="ml">Tasa refinanc. (%TNA)</label><input id="refiTasa" type="number" placeholder="ej: 90" step="0.5" oninput="calcRefi()" class="mi"/></div>
+        <div><label class="ml">Cuotas adicionales</label><input id="refiCuotas" type="number" placeholder="1" min="1" max="12" oninput="calcRefi()" class="mi"/></div>
+        <div><label class="ml">Primera cuota refi</label><input id="reFecha" type="date" class="mi"/></div>
       </div>
       <div id="refiCalc" style="display:none;background:#131b2e;border-radius:9px;padding:13px;margin-bottom:14px;font-size:12px">
-        <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:#8892aa">Cuota refinanciación</span><span id="rcCuota" style="font-weight:700;color:#ffb95f"></span></div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:#8892aa">Cuota refi</span><span id="rcCuota" style="font-weight:700;color:#ffb95f"></span></div>
         <div style="display:flex;justify-content:space-between"><span style="color:#8892aa">Total a recuperar</span><span id="rcTotal" style="font-weight:700;color:#ffb95f"></span></div>
       </div>
       <div style="display:flex;gap:9px;justify-content:flex-end">
@@ -481,6 +444,26 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
 
 <script>
 // ══════════════════════════════════════════════
+//  CONFIGURACIÓN — SOLO CAMBIAR ESTO
+// ══════════════════════════════════════════════
+const GAS_URL_KEY = 'prestatrack_gas_url';
+// ── URL hardcodeada — cambiala por la tuya después del deploy ──
+const GAS_URL_HARDCODED = 'https://script.google.com/macros/s/AKfycbxyzt6al_vNusC2kLpfX9NiN7hD6vbF5wuKa5g4e5vhrQQekETK6F4PI1EwhDuXZnSm/exec';
+let GAS_URL = GAS_URL_HARDCODED || localStorage.getItem(GAS_URL_KEY) || '';
+let PIN = localStorage.getItem('prestatrack_pin') || '1234';
+
+// ══════════════════════════════════════════════
+//  ESTADO EN MEMORIA (fuente: Sheets)
+// ══════════════════════════════════════════════
+let prestamos = [];   // array de préstamos
+let historial = [];   // array de cobros
+let rofex = {};       // { "2026-04": 1520, ... }
+
+let editId = null, curFilter = 'todos', pinBuf = '', pinFails = 0, charts = {};
+let pagoData = null, refiData = null;
+let curSearch = '';
+
+// ══════════════════════════════════════════════
 //  MATH
 // ══════════════════════════════════════════════
 function french(capital, tnaPct, n) {
@@ -490,7 +473,7 @@ function french(capital, tnaPct, n) {
   for (let i = 1; i <= n; i++) {
     const int = sal * r; const cap = cuota - int;
     sal = Math.max(0, sal - cap);
-    sched.push({ n: i, cuota: r2(cuota), capital: r2(cap), interes: r2(int), saldo: r2(sal) });
+    sched.push({ n:i, cuota:r2(cuota), capital:r2(cap), interes:r2(int), saldo:r2(sal) });
   }
   return { cuota: r2(cuota), sched };
 }
@@ -513,167 +496,125 @@ function tirAnual(usdInv, usdFlows) {
 function r2(n) { return Math.round(n * 100) / 100; }
 
 // ══════════════════════════════════════════════
-//  STATE
+//  API — igual modelo que app de gastos
 // ══════════════════════════════════════════════
-let S = { pin: '1234', gasUrl: '', prestamos: [], historial: [], rofex: {} };
-let editId = null, curFilter = 'todos', pinBuf = '', pinFails = 0, charts = {};
-let pagoData = null, refiData = null;
 
-const STORAGE_KEY = 'pt4_v2';
-const INIT_FLAG   = 'pt4_initialized';
-
-function save() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(S));
-}
-
-function load() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) { const d = JSON.parse(raw); S = { ...S, ...d }; return; }
-    // Migrar desde key vieja
-    const old = localStorage.getItem('pt4');
-    if (old) { const d = JSON.parse(old); S = { ...S, ...d }; save(); localStorage.removeItem('pt4'); }
-  } catch(e) { console.error('Error cargando estado:', e); }
-}
-
-// Lee el estado desde Google Sheets via POST (no necesita doGet)
-function loadFromSheets(onDone) {
-  if (!S.gasUrl) { if(onDone) onDone(false); return; }
-  fetch(S.gasUrl, {
-    method: 'POST',
-    body: JSON.stringify({ action: 'load' })
-  })
-  .then(r => r.json())
-  .then(data => {
-    if (!data || data.error) { console.warn('Sheets load error:', data?.error); if(onDone) onDone(false); return; }
-    if (data && Array.isArray(data.prestamos)) {
-      const sheetsCount = data.prestamos.length;
-      const localCount  = S.prestamos.length;
-      if (sheetsCount >= localCount || localCount === 0) {
-        const gasUrl = S.gasUrl;
-        const pin    = S.pin;
-        S = { ...data, gasUrl, pin };
-        save();
-        renderAll();
-        setSyncUI('ok');
-        setTimeout(() => setSyncUI(''), 3000);
-      }
-    }
-    if(onDone) onDone(true);
-  })
-  .catch(err => {
-    console.warn('loadFromSheets error:', err);
-    if(onDone) onDone(false);
+// Lee todos los datos desde Sheets via JSONP (doGet)
+function loadFromSheets() {
+  return new Promise((resolve, reject) => {
+    if (!GAS_URL) { resolve(); return; }
+    const cbName = 'pt_load_' + Date.now();
+    const script = document.createElement('script');
+    const timeout = setTimeout(() => {
+      script.remove(); delete window[cbName];
+      reject(new Error('Timeout'));
+    }, 10000);
+    window[cbName] = function(data) {
+      clearTimeout(timeout); script.remove(); delete window[cbName];
+      if (data && data.error) { reject(new Error(data.error)); return; }
+      // Parsear datos recibidos
+      prestamos = (data.prestamos || []).map(parsePrestamo);
+      historial = (data.historial || []).map(parseHistorial);
+      rofex = data.rofex || {};
+      resolve();
+    };
+    script.onerror = () => { clearTimeout(timeout); script.remove(); delete window[cbName]; reject(new Error('Script error')); };
+    script.src = GAS_URL + '?action=load&callback=' + cbName + '&t=' + Date.now();
+    document.head.appendChild(script);
   });
 }
 
-// Sincroniza: primero sube, después confirma
-async function syncData(manual=false) {
-  if (!S.gasUrl) { if(manual) alert('Configurá la URL del Apps Script en Config.'); return; }
-  if (S.prestamos.length === 0 && !manual) return;
-  if (S.prestamos.length === 0 && manual) {
-    if (!confirm('El estado local está vacío. ¿Seguro que querés subir y borrar los datos en Sheets?')) return;
-  }
+function parsePrestamo(p) {
+  return {
+    id: String(p.id),
+    nombre: String(p.nombre),
+    capital: Number(p.capital),
+    tcHoy: Number(p.tcHoy),
+    usdInvertidos: Number(p.usdInvertidos),
+    tna: Number(p.tna),
+    numCuotas: Number(p.numCuotas),
+    fechaInicio: String(p.fechaInicio),
+    notas: String(p.notas || ''),
+    cuota: Number(p.cuota),
+    estado: String(p.estado || 'activo'),
+    creado: String(p.creado || ''),
+    cuotas: (p.cuotas || []).map(parseCuota),
+  };
+}
+
+function parseCuota(c) {
+  return {
+    n: Number(c.n),
+    fecha: String(c.fecha),
+    monto: Number(c.monto),
+    capital: Number(c.capital),
+    interes: Number(c.interes),
+    saldo: Number(c.saldo),
+    tcRofex: c.tcRofex ? Number(c.tcRofex) : null,
+    usdEst: c.usdEst ? Number(c.usdEst) : null,
+    pagada: c.pagada === true || c.pagada === 'true' || c.pagada === 'SI',
+    fechaPago: c.fechaPago || null,
+    tcReal: c.tcReal ? Number(c.tcReal) : null,
+    usdReal: c.usdReal ? Number(c.usdReal) : null,
+    nota: c.nota || null,
+    esRefi: c.esRefi === true || c.esRefi === 'true' || c.esRefi === 'SI',
+  };
+}
+
+function parseHistorial(h) {
+  return {
+    id: String(h.id),
+    prestamoId: String(h.prestamoId),
+    nombre: String(h.nombre),
+    cuotaN: h.cuotaN,
+    monto: Number(h.monto),
+    tcReal: h.tcReal ? Number(h.tcReal) : null,
+    usdReal: h.usdReal ? Number(h.usdReal) : null,
+    usdEst: h.usdEst ? Number(h.usdEst) : null,
+    fecha: String(h.fecha),
+    tipo: String(h.tipo || 'pago'),
+    nota: h.nota || null,
+  };
+}
+
+// Guarda UN préstamo en Sheets (POST)
+async function apiSavePrestamo(p) {
+  if (!GAS_URL) return;
   setSyncUI('syncing');
   try {
-    await fetch(S.gasUrl, { method:'POST', body:JSON.stringify({ action:'save', data:S }) });
+    await fetch(GAS_URL, { method:'POST', body: JSON.stringify({ action:'savePrestamo', prestamo: p }) });
     setSyncUI('ok');
-    setTimeout(() => setSyncUI(''), 4000);
-  } catch(e) {
-    setSyncUI('error');
-    if(manual) alert('Error al conectar. Verificá la URL en Config.');
-  }
+  } catch(e) { setSyncUI('error'); console.error(e); }
 }
 
-// ══════════════════════════════════════════════
-//  DATA INICIAL — 7 préstamos reales
-// ══════════════════════════════════════════════
-function buildInitialData() {
-  // Si ya se inicializó alguna vez, nunca volver a correr
-  if (localStorage.getItem(INIT_FLAG)) return;
-  // Si ya hay préstamos cargados (migración), solo marcar el flag
-  if (S.prestamos.length > 0) { localStorage.setItem(INIT_FLAG, '1'); return; }
+// Guarda UN registro de historial en Sheets (POST)
+async function apiSaveHistorial(h) {
+  if (!GAS_URL) return;
+  setSyncUI('syncing');
+  try {
+    await fetch(GAS_URL, { method:'POST', body: JSON.stringify({ action:'saveHistorial', historial: h }) });
+    setSyncUI('ok');
+  } catch(e) { setSyncUI('error'); console.error(e); }
+}
 
-  const f = (y, m, d=1) => `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+// Guarda el rofex completo en Sheets (POST)
+async function apiSaveRofex() {
+  if (!GAS_URL) return;
+  setSyncUI('syncing');
+  try {
+    await fetch(GAS_URL, { method:'POST', body: JSON.stringify({ action:'saveRofex', rofex }) });
+    setSyncUI('ok');
+  } catch(e) { setSyncUI('error'); console.error(e); }
+}
 
-  // ── 1. MONI (1) COMPLETADO ──────────────────
-  const m1 = french(1000000, 75, 6);
-  const tcsM1 = [1426,1506,1455,1466,1465,1395];
-  const fechasM1 = [f(2025,9),f(2025,10),f(2025,11),f(2025,12),f(2026,1),f(2026,2)];
-  const p1id = uid(); const cuotasM1 = m1.sched.map((s,i) => ({
-    n:s.n, fecha:fechasM1[i], monto:s.cuota, capital:s.capital, interes:s.interes, saldo:s.saldo,
-    tcRofex:tcsM1[i], usdEst:r2(s.cuota/tcsM1[i]), pagada:true, fechaPago:fechasM1[i],
-    tcReal:tcsM1[i], usdReal:r2(s.cuota/tcsM1[i])
-  }));
-  S.prestamos.push({ id:p1id, nombre:'Moni', capital:1000000, tcHoy:1397, usdInvertidos:r2(1000000/1397), tna:75, numCuotas:6, fechaInicio:f(2025,9), notas:'', cuota:m1.cuota, cuotas:cuotasM1, estado:'cancelado', creado:f(2025,8,25) });
-  cuotasM1.forEach(c => S.historial.push({ id:uid(), prestamoId:p1id, nombre:'Moni', cuotaN:c.n, monto:c.monto, tcReal:c.tcReal, usdReal:c.usdReal, usdEst:c.usdEst, fecha:c.fechaPago }));
-
-  // ── 2. ANDREA (1) — pago parcial c3 ─────────
-  // c1 pagada ene/1496, c2 pagada feb/1445
-  // c3: pagó $200k parcial (faltan $100k del saldo)
-  // c4 refinanciada: saldo restante + interés
-  const p2id = uid(); const a1 = french(1000000, 85, 4);
-  const r85 = (85/100)/12;
-  // Saldo tras c1
-  const s1a = a1.sched[0].saldo;
-  // Saldo tras c2
-  const s2a = a1.sched[1].saldo;
-  // c3: el cliente pagó 200k. Interés normal sobre saldo s2a
-  const intC3 = r2(s2a * r85);
-  const capC3Real = r2(200000 - intC3); // capital amortizado real
-  const saldoTrasC3 = r2(Math.max(0, s2a - capC3Real));
-  // c4 refinanciada: saldo + 1 mes de interés = cuota única
-  const cuota4Refi = r2(saldoTrasC3 * (1 + r85));
-  const cuotasA1 = [
-    { n:1, fecha:f(2026,1), monto:a1.sched[0].cuota, capital:a1.sched[0].capital, interes:a1.sched[0].interes, saldo:s1a, tcRofex:1496, usdEst:r2(a1.sched[0].cuota/1496), pagada:true, fechaPago:f(2026,1,10), tcReal:1496, usdReal:r2(a1.sched[0].cuota/1496) },
-    { n:2, fecha:f(2026,2), monto:a1.sched[1].cuota, capital:a1.sched[1].capital, interes:a1.sched[1].interes, saldo:s2a, tcRofex:1445, usdEst:r2(a1.sched[1].cuota/1445), pagada:true, fechaPago:f(2026,2,10), tcReal:1445, usdReal:r2(a1.sched[1].cuota/1445) },
-    { n:3, fecha:f(2026,3), monto:200000, capital:capC3Real, interes:intC3, saldo:saldoTrasC3, tcRofex:1410, usdEst:r2(200000/1410), pagada:true, fechaPago:f(2026,3,20), tcReal:1410, usdReal:r2(200000/1410), nota:'Pago parcial — refinanciada' },
-    { n:4, fecha:f(2026,4), monto:cuota4Refi, capital:saldoTrasC3, interes:r2(saldoTrasC3*r85), saldo:0, tcRofex:null, usdEst:null, pagada:false, fechaPago:null, tcReal:null, usdReal:null, nota:'Refinanciada: saldo $'+saldoTrasC3.toLocaleString('es-AR'), esRefi:true }
-  ];
-  S.prestamos.push({ id:p2id, nombre:'Andrea', capital:1000000, tcHoy:1495, usdInvertidos:r2(1000000/1495), tna:85, numCuotas:4, fechaInicio:f(2026,1), notas:'C3 pago parcial $200k refinanciada', cuota:a1.cuota, cuotas:cuotasA1, estado:'atrasado', creado:f(2025,12,20) });
-  [cuotasA1[0],cuotasA1[1],cuotasA1[2]].forEach(c => S.historial.push({ id:uid(), prestamoId:p2id, nombre:'Andrea', cuotaN:c.n, monto:c.monto, tcReal:c.tcReal, usdReal:c.usdReal, usdEst:c.usdEst, fecha:c.fechaPago }));
-
-  // ── 3. MONI (2) COMPLETADO — pago único ──────
-  const p3id = uid();
-  S.prestamos.push({ id:p3id, nombre:'Moni (2)', capital:500000, tcHoy:1495, usdInvertidos:r2(500000/1495), tna:0, numCuotas:1, fechaInicio:f(2025,12), notas:'Pago único $520k', cuota:520000, cuotas:[
-    { n:1, fecha:f(2025,12), monto:520000, capital:520000, interes:0, saldo:0, tcRofex:1466, usdEst:r2(520000/1466), pagada:true, fechaPago:f(2025,12,15), tcReal:1466, usdReal:r2(520000/1466) }
-  ], estado:'cancelado', creado:f(2025,12,1) });
-  S.historial.push({ id:uid(), prestamoId:p3id, nombre:'Moni (2)', cuotaN:1, monto:520000, tcReal:1466, usdReal:r2(520000/1466), usdEst:r2(520000/1466), fecha:f(2025,12,15) });
-
-  // ── 4. MONI (3) — 2/12 pagadas ───────────────
-  const p4id = uid(); const m3 = french(2000000, 68, 12);
-  const tcsM3paid = [1448,1410];
-  const cuotasM3 = m3.sched.map((s,i) => {
-    const paid = i < 2;
-    const mes = (() => { const d = new Date('2026-02-01T12:00:00'); d.setMonth(d.getMonth()+i); return d.toISOString().slice(0,10); })();
-    return { n:s.n, fecha:mes, monto:s.cuota, capital:s.capital, interes:s.interes, saldo:s.saldo,
-      tcRofex: paid ? tcsM3paid[i] : null, usdEst: paid ? r2(s.cuota/tcsM3paid[i]) : null,
-      pagada: paid, fechaPago: paid ? f(2026,2+i,5) : null,
-      tcReal: paid ? tcsM3paid[i] : null, usdReal: paid ? r2(s.cuota/tcsM3paid[i]) : null };
-  });
-  S.prestamos.push({ id:p4id, nombre:'Moni (3)', capital:2000000, tcHoy:1538, usdInvertidos:r2(2000000/1538), tna:68, numCuotas:12, fechaInicio:f(2026,2), notas:'', cuota:m3.cuota, cuotas:cuotasM3, estado:'activo', creado:f(2026,1,28) });
-  cuotasM3.filter(c=>c.pagada).forEach(c => S.historial.push({ id:uid(), prestamoId:p4id, nombre:'Moni (3)', cuotaN:c.n, monto:c.monto, tcReal:c.tcReal, usdReal:c.usdReal, usdEst:c.usdEst, fecha:c.fechaPago }));
-
-  // ── 5. MA — arranca Abr 2026 ──────────────────
-  const p5id = uid(); const ma = french(350000, 70, 4);
-  S.prestamos.push({ id:p5id, nombre:'MA', capital:350000, tcHoy:1440, usdInvertidos:r2(350000/1440), tna:70, numCuotas:4, fechaInicio:f(2026,4), notas:'', cuota:ma.cuota,
-    cuotas: ma.sched.map((s,i) => ({ n:s.n, fecha:f(2026,4+i), monto:s.cuota, capital:s.capital, interes:s.interes, saldo:s.saldo, tcRofex:null, usdEst:null, pagada:false, fechaPago:null, tcReal:null, usdReal:null })),
-    estado:'activo', creado:f(2026,3,20) });
-
-  // ── 6. MATÍAS C — arranca Abr 2026 ───────────
-  const p6id = uid(); const mc = french(465000, 70, 5);
-  S.prestamos.push({ id:p6id, nombre:'Matías C', capital:465000, tcHoy:1463, usdInvertidos:r2(465000/1463), tna:70, numCuotas:5, fechaInicio:f(2026,4), notas:'', cuota:mc.cuota,
-    cuotas: mc.sched.map((s,i) => ({ n:s.n, fecha:f(2026,4+i), monto:s.cuota, capital:s.capital, interes:s.interes, saldo:s.saldo, tcRofex:null, usdEst:null, pagada:false, fechaPago:null, tcReal:null, usdReal:null })),
-    estado:'activo', creado:f(2026,3,20) });
-
-  // ── 7. ANDREA (2) — cuota única Abr 2026 ─────
-  const p7id = uid(); const a2 = french(200000, 80, 1);
-  S.prestamos.push({ id:p7id, nombre:'Andrea (2)', capital:200000, tcHoy:1460, usdInvertidos:r2(200000/1460), tna:80, numCuotas:1, fechaInicio:f(2026,4), notas:'Cuota única', cuota:a2.cuota,
-    cuotas:[{ n:1, fecha:f(2026,4), monto:a2.cuota, capital:a2.sched[0].capital, interes:a2.sched[0].interes, saldo:0, tcRofex:null, usdEst:null, pagada:false, fechaPago:null, tcReal:null, usdReal:null }],
-    estado:'activo', creado:f(2026,3,20) });
-
-  localStorage.setItem(INIT_FLAG, '1');
-  save();
+// Elimina un préstamo de Sheets (POST)
+async function apiDeletePrestamo(id) {
+  if (!GAS_URL) return;
+  setSyncUI('syncing');
+  try {
+    await fetch(GAS_URL, { method:'POST', body: JSON.stringify({ action:'deletePrestamo', id }) });
+    setSyncUI('ok');
+  } catch(e) { setSyncUI('error'); console.error(e); }
 }
 
 // ══════════════════════════════════════════════
@@ -683,18 +624,63 @@ function pp(d) {
   if (pinFails >= 5) return;
   pinBuf += d; upDots();
   if (pinBuf.length === 4) setTimeout(() => {
-    if (pinBuf === S.pin) {
-      document.getElementById('lockScreen').style.display='none';
-      document.getElementById('app').style.display='block';
-      renderAll();
-      initAfterUnlock();
+    if (pinBuf === PIN) {
+      document.getElementById('lockScreen').style.display = 'none';
+      iniciarApp();
+    } else {
+      pinFails++;
+      document.getElementById('pinErr').textContent = pinFails >= 5 ? 'Bloqueado. Recargá la página.' : `PIN incorrecto (${5-pinFails} intentos)`;
+      pinBuf = ''; upDots();
     }
-    else { pinFails++; document.getElementById('pinErr').textContent = pinFails >= 5 ? 'Bloqueado. Recargá la página.' : `PIN incorrecto (${5-pinFails} intentos)`; pinBuf=''; upDots(); }
   }, 200);
 }
 function pdel() { pinBuf = pinBuf.slice(0,-1); upDots(); }
 function upDots() { for (let i=0;i<4;i++) { const d=document.getElementById('pd'+i); d.style.background = i<pinBuf.length?'#adc6ff':'transparent'; d.style.borderColor = i<pinBuf.length?'#adc6ff':'#4b5563'; } }
 document.addEventListener('keydown', e => { if (document.getElementById('lockScreen').style.display !== 'none') { if (e.key>='0'&&e.key<='9') pp(e.key); if (e.key==='Backspace') pdel(); } });
+
+// ══════════════════════════════════════════════
+//  INICIO — carga desde Sheets
+// ══════════════════════════════════════════════
+async function iniciarApp() {
+  if (!GAS_URL) {
+    // Sin URL configurada — mostrar app vacía con mensaje
+    document.getElementById('app').style.display = 'block';
+    renderAll();
+    document.getElementById('gasStatus').textContent = 'Sin conectar — configurá la URL del Apps Script';
+    document.getElementById('gasStatus').style.color = '#ffb95f';
+    return;
+  }
+  // Mostrar pantalla de carga
+  document.getElementById('loadingScreen').style.display = 'flex';
+  try {
+    await loadFromSheets();
+    document.getElementById('loadingScreen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    aplicarRofexATodos();
+    renderAll();
+    setSyncUI('ok');
+  } catch(e) {
+    document.getElementById('loadingScreen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    renderAll();
+    alert('No se pudo conectar con Sheets. Verificá la URL en Config.\nError: ' + e.message);
+  }
+}
+
+async function recargarDesdeSheets() {
+  if (!GAS_URL) { alert('Configurá la URL del Apps Script en Config.'); return; }
+  document.getElementById('loadingScreen').style.display = 'flex';
+  try {
+    await loadFromSheets();
+    document.getElementById('loadingScreen').style.display = 'none';
+    aplicarRofexATodos();
+    renderAll();
+    setSyncUI('ok');
+  } catch(e) {
+    document.getElementById('loadingScreen').style.display = 'none';
+    alert('Error al recargar: ' + e.message);
+  }
+}
 
 // ══════════════════════════════════════════════
 //  TABS & DATE
@@ -713,425 +699,405 @@ function showTab(id, el) {
   if (id==='analytics') renderCharts();
   if (id==='historial') renderHistorial();
   if (id==='rofex') renderRofexPanel();
-  if (id==='config') document.getElementById('gasUrl').value = S.gasUrl||'';
+  if (id==='config') {
+    document.getElementById('gasUrl').value = GAS_URL || '';
+    document.getElementById('gasStatus').textContent = GAS_URL ? '✓ Conectado a Sheets' : 'Sin conectar';
+    document.getElementById('gasStatus').style.color = GAS_URL ? '#4edea3' : '#ffb95f';
+  }
 }
 
 // ══════════════════════════════════════════════
 //  MODAL PRÉSTAMO
 // ══════════════════════════════════════════════
 function openModal(id=null) {
-  editId=id;
+  editId = id;
   document.getElementById('modalTitle').textContent = id ? 'Editar Préstamo' : 'Nuevo Préstamo';
   if (id) {
-    const p=S.prestamos.find(x=>x.id===id);
-    document.getElementById('fNombre').value=p.nombre;
-    document.getElementById('fCapital').value=p.capital;
-    document.getElementById('fTcHoy').value=p.tcHoy;
-    document.getElementById('fTna').value=p.tna;
-    document.getElementById('fCuotas').value=p.numCuotas;
-    document.getElementById('fFecha').value=p.fechaInicio;
-    document.getElementById('fNotas').value=p.notas||'';
+    const p = prestamos.find(x => x.id === id);
+    document.getElementById('fNombre').value = p.nombre;
+    document.getElementById('fCapital').value = p.capital;
+    document.getElementById('fTcHoy').value = p.tcHoy;
+    document.getElementById('fTna').value = p.tna;
+    document.getElementById('fCuotas').value = p.numCuotas;
+    document.getElementById('fFecha').value = p.fechaInicio;
+    document.getElementById('fNotas').value = p.notas || '';
   } else {
-    ['fNombre','fCapital','fTcHoy','fTna','fCuotas','fNotas'].forEach(i => document.getElementById(i).value='');
-    document.getElementById('fFecha').value=todayStr();
-    document.getElementById('fUsdInv').value='';
-    document.getElementById('modalCalc').style.display='none';
+    ['fNombre','fCapital','fTcHoy','fTna','fCuotas','fNotas'].forEach(i => document.getElementById(i).value = '');
+    document.getElementById('fFecha').value = todayStr();
+    document.getElementById('fUsdInv').value = '';
+    document.getElementById('modalCalc').style.display = 'none';
   }
   calcModal();
-  document.getElementById('modalOverlay').style.display='flex';
+  document.getElementById('modalOverlay').style.display = 'flex';
 }
-function closeModal() { document.getElementById('modalOverlay').style.display='none'; editId=null; }
+function closeModal() { document.getElementById('modalOverlay').style.display = 'none'; editId = null; }
 document.getElementById('modalOverlay').addEventListener('click', e => { if (e.target===document.getElementById('modalOverlay')) closeModal(); });
 
 function calcModal() {
-  const cap=parseFloat(document.getElementById('fCapital').value);
-  const tc=parseFloat(document.getElementById('fTcHoy').value);
-  const tna=parseFloat(document.getElementById('fTna').value)||0;
-  const n=parseInt(document.getElementById('fCuotas').value);
-  if (tc&&cap) document.getElementById('fUsdInv').value='U$S '+fmt(r2(cap/tc));
-  if (!cap||!n) { document.getElementById('modalCalc').style.display='none'; return; }
-  const {cuota,sched}=french(cap,tna,n);
-  const total=sched.reduce((s,x)=>s+x.cuota,0);
-  document.getElementById('mcCuota').textContent='$ '+fmt(cuota);
-  document.getElementById('mcUsdInv').textContent=tc?'U$S '+fmt(r2(cap/tc)):'—';
-  document.getElementById('mcTotal').textContent='$ '+fmt(r2(total));
-  document.getElementById('modalCalc').style.display='block';
+  const cap = parseFloat(document.getElementById('fCapital').value);
+  const tc = parseFloat(document.getElementById('fTcHoy').value);
+  const tna = parseFloat(document.getElementById('fTna').value) || 0;
+  const n = parseInt(document.getElementById('fCuotas').value);
+  if (tc && cap) document.getElementById('fUsdInv').value = 'U$S ' + fmt(r2(cap/tc));
+  if (!cap || !n) { document.getElementById('modalCalc').style.display = 'none'; return; }
+  const { cuota, sched } = french(cap, tna, n);
+  const total = sched.reduce((s,x) => s+x.cuota, 0);
+  document.getElementById('mcCuota').textContent = '$ ' + fmt(cuota);
+  document.getElementById('mcUsdInv').textContent = tc ? 'U$S ' + fmt(r2(cap/tc)) : '—';
+  document.getElementById('mcTotal').textContent = '$ ' + fmt(r2(total));
+  document.getElementById('modalCalc').style.display = 'block';
 }
 
-function guardar() {
-  const nombre=document.getElementById('fNombre').value.trim();
-  const capital=parseFloat(document.getElementById('fCapital').value);
-  const tcHoy=parseFloat(document.getElementById('fTcHoy').value);
-  const tna=parseFloat(document.getElementById('fTna').value)||0;
-  const numCuotas=parseInt(document.getElementById('fCuotas').value);
-  const fechaInicio=document.getElementById('fFecha').value;
-  const notas=document.getElementById('fNotas').value.trim();
-  if (!nombre||!capital||!tcHoy||!numCuotas||!fechaInicio) { alert('Completá: nombre, capital, TC, cuotas y fecha.'); return; }
-  const {cuota,sched}=french(capital,tna,numCuotas);
-  const usdInvertidos=r2(capital/tcHoy);
-  const cuotas=sched.map((s,i) => {
-    const mesKey=addMonths(fechaInicio,i).slice(0,7);
-    const tcR=S.rofex[mesKey]||null;
-    return { n:s.n, fecha:addMonths(fechaInicio,i), monto:s.cuota, capital:s.capital, interes:s.interes, saldo:s.saldo,
-      tcRofex:tcR, usdEst:tcR?r2(s.cuota/tcR):null, pagada:false, fechaPago:null, tcReal:null, usdReal:null };
-  });
+async function guardar() {
+  const nombre = document.getElementById('fNombre').value.trim();
+  const capital = parseFloat(document.getElementById('fCapital').value);
+  const tcHoy = parseFloat(document.getElementById('fTcHoy').value);
+  const tna = parseFloat(document.getElementById('fTna').value) || 0;
+  const numCuotas = parseInt(document.getElementById('fCuotas').value);
+  const fechaInicio = document.getElementById('fFecha').value;
+  const notas = document.getElementById('fNotas').value.trim();
+  if (!nombre || !capital || !tcHoy || !numCuotas || !fechaInicio) { alert('Completá: nombre, capital, TC, cuotas y fecha.'); return; }
+
+  const { cuota, sched } = french(capital, tna, numCuotas);
+  const usdInvertidos = r2(capital / tcHoy);
+
   if (editId) {
-    const idx=S.prestamos.findIndex(x=>x.id===editId);
-    const prev=S.prestamos[idx];
-    cuotas.forEach(c => { const p=prev.cuotas.find(x=>x.n===c.n); if(p){c.pagada=p.pagada;c.fechaPago=p.fechaPago;c.tcReal=p.tcReal;c.usdReal=p.usdReal;} });
-    S.prestamos[idx]={...prev,nombre,capital,tcHoy,usdInvertidos,tna,numCuotas,fechaInicio,notas,cuota,cuotas};
+    const idx = prestamos.findIndex(x => x.id === editId);
+    const prev = prestamos[idx];
+    const cuotas = sched.map((s,i) => {
+      const mesKey = addMonths(fechaInicio, i).slice(0,7);
+      const tcR = rofex[mesKey] || null;
+      const existing = prev.cuotas.find(c => c.n === s.n);
+      return {
+        n:s.n, fecha:addMonths(fechaInicio,i), monto:s.cuota,
+        capital:s.capital, interes:s.interes, saldo:s.saldo,
+        tcRofex:tcR, usdEst:tcR?r2(s.cuota/tcR):null,
+        pagada: existing?.pagada || false,
+        fechaPago: existing?.fechaPago || null,
+        tcReal: existing?.tcReal || null,
+        usdReal: existing?.usdReal || null,
+      };
+    });
+    const updated = { ...prev, nombre, capital, tcHoy, usdInvertidos, tna, numCuotas, fechaInicio, notas, cuota, cuotas };
+    updated.estado = getEstado(updated);
+    prestamos[idx] = updated;
+    closeModal(); renderAll();
+    await apiSavePrestamo(updated);
   } else {
-    S.prestamos.push({id:uid(),nombre,capital,tcHoy,usdInvertidos,tna,numCuotas,fechaInicio,notas,cuota,cuotas,estado:'activo',creado:new Date().toISOString()});
+    const cuotas = sched.map((s,i) => {
+      const mesKey = addMonths(fechaInicio, i).slice(0,7);
+      const tcR = rofex[mesKey] || null;
+      return { n:s.n, fecha:addMonths(fechaInicio,i), monto:s.cuota, capital:s.capital, interes:s.interes, saldo:s.saldo, tcRofex:tcR, usdEst:tcR?r2(s.cuota/tcR):null, pagada:false, fechaPago:null, tcReal:null, usdReal:null };
+    });
+    const nuevo = { id:uid(), nombre, capital, tcHoy, usdInvertidos, tna, numCuotas, fechaInicio, notas, cuota, cuotas, estado:'activo', creado:new Date().toISOString() };
+    prestamos.push(nuevo);
+    closeModal(); renderAll();
+    await apiSavePrestamo(nuevo);
   }
-  save(); closeModal(); renderAll(); syncData();
 }
 
 // ══════════════════════════════════════════════
 //  MODAL PAGO
 // ══════════════════════════════════════════════
 function openPago(pid, cidx) {
-  const p=S.prestamos.find(x=>x.id===pid); const c=p.cuotas[cidx];
-  pagoData={pid, cidx, montoCuota: c.monto, tnaBase: p.tna};
-  document.getElementById('pagoTitle').textContent=`Cobrar — ${p.nombre} Cuota #${c.n}`;
-  document.getElementById('pagoInfo').innerHTML=`
+  const p = prestamos.find(x => x.id === pid);
+  const c = p.cuotas[cidx];
+  pagoData = { pid, cidx, montoCuota: c.monto, tnaBase: p.tna };
+  document.getElementById('pagoTitle').textContent = `Cobrar — ${p.nombre} Cuota #${c.n}`;
+  document.getElementById('pagoInfo').innerHTML = `
     <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:#8892aa">Deudor</span><span style="font-weight:700;color:#f1f5f9">${p.nombre}</span></div>
     <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:#8892aa">Cuota N°</span><span style="color:#f1f5f9">#${c.n} de ${p.cuotas.length}</span></div>
-    <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:#8892aa">Monto total cuota</span><span style="font-weight:700;color:#adc6ff">$ ${fmt(c.monto)}</span></div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:#8892aa">Monto total</span><span style="font-weight:700;color:#adc6ff">$ ${fmt(c.monto)}</span></div>
     <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:#8892aa">Capital</span><span style="color:#f1f5f9">$ ${fmt(c.capital)}</span></div>
     <div style="display:flex;justify-content:space-between"><span style="color:#8892aa">Interés</span><span style="color:#fbbf24">$ ${fmt(c.interes)}</span></div>
-    ${c.tcRofex?`<div style="display:flex;justify-content:space-between;margin-top:7px;padding-top:7px;border-top:1px solid rgba(255,255,255,0.05)"><span style="color:#8892aa">TC Rofex est.</span><span style="color:#64748b">$${c.tcRofex} → U$S ${fmt(c.usdEst)}</span></div>`:''}
-    ${c.nota?`<div style="margin-top:7px;font-size:11px;color:#ffb95f">⚠ ${c.nota}</div>`:''}`;
-  // Prellenar monto con total de la cuota
+    ${c.tcRofex ? `<div style="display:flex;justify-content:space-between;margin-top:7px;padding-top:7px;border-top:1px solid rgba(255,255,255,0.05)"><span style="color:#8892aa">TC Rofex est.</span><span style="color:#64748b">$${c.tcRofex} → U$S ${fmt(c.usdEst)}</span></div>` : ''}
+    ${c.nota ? `<div style="margin-top:7px;font-size:11px;color:#ffb95f">⚠ ${c.nota}</div>` : ''}`;
   document.getElementById('pagoMonto').value = c.monto;
-  document.getElementById('pagoTc').value='';
-  document.getElementById('pagoCalc').style.display='none';
-  document.getElementById('pagoMoraBloque').style.display='none';
-  document.getElementById('pagoMontoPct').textContent='';
-  document.getElementById('pagoConfirmBtn').style.background='#4edea3';
-  document.getElementById('pagoConfirmBtn').style.color='#003824';
-  document.getElementById('pagoOverlay').style.display='flex';
+  document.getElementById('pagoTc').value = '';
+  document.getElementById('pagoCalc').style.display = 'none';
+  document.getElementById('pagoMoraBloque').style.display = 'none';
+  document.getElementById('pagoMontoPct').textContent = '';
+  document.getElementById('pagoConfirmBtn').style.background = '#4edea3';
+  document.getElementById('pagoConfirmBtn').style.color = '#003824';
+  document.getElementById('pagoConfirmBtn').textContent = 'Confirmar cobro';
+  document.getElementById('pagoOverlay').style.display = 'flex';
 }
-function closePago() { document.getElementById('pagoOverlay').style.display='none'; pagoData=null; }
-document.getElementById('pagoOverlay').addEventListener('click', e => { if(e.target===document.getElementById('pagoOverlay')) closePago(); });
+function closePago() { document.getElementById('pagoOverlay').style.display = 'none'; pagoData = null; }
+document.getElementById('pagoOverlay').addEventListener('click', e => { if (e.target===document.getElementById('pagoOverlay')) closePago(); });
 
 function calcPago() {
   if (!pagoData) return;
-  const monto=parseFloat(document.getElementById('pagoMonto').value);
-  const tc=parseFloat(document.getElementById('pagoTc').value);
-  const montoCuota=pagoData.montoCuota;
-  const tnaBase=pagoData.tnaBase;
-
-  // Porcentaje cobrado
+  const monto = parseFloat(document.getElementById('pagoMonto').value);
+  const tc = parseFloat(document.getElementById('pagoTc').value);
+  const { montoCuota, tnaBase } = pagoData;
   if (monto && montoCuota) {
-    const pct=Math.round(monto/montoCuota*100);
-    const pctEl=document.getElementById('pagoMontoPct');
-    if (monto > montoCuota) { pctEl.textContent='⚠ El monto supera la cuota'; pctEl.style.color='#ffb4ab'; }
-    else if (monto < montoCuota) { pctEl.textContent=`${pct}% de la cuota · saldo: $ ${fmt(r2(montoCuota-monto))}`; pctEl.style.color='#ffb95f'; }
-    else { pctEl.textContent='✓ Pago completo'; pctEl.style.color='#4edea3'; }
+    const pct = Math.round(monto/montoCuota*100);
+    const el = document.getElementById('pagoMontoPct');
+    if (monto > montoCuota) { el.textContent = '⚠ El monto supera la cuota'; el.style.color = '#ffb4ab'; }
+    else if (monto < montoCuota) { el.textContent = `${pct}% · saldo: $ ${fmt(r2(montoCuota-monto))}`; el.style.color = '#ffb95f'; }
+    else { el.textContent = '✓ Pago completo'; el.style.color = '#4edea3'; }
   }
-
-  if (!monto || !tc) { document.getElementById('pagoCalc').style.display='none'; document.getElementById('pagoMoraBloque').style.display='none'; return; }
-
-  const usdReal=r2(monto/tc);
-  const p=S.prestamos.find(x=>x.id===pagoData.pid);
-  const c=p.cuotas[pagoData.cidx];
-  const dif=c.usdEst?r2(usdReal-c.usdEst*(monto/montoCuota)):null;
-
-  document.getElementById('pcPesos').textContent='$ '+fmt(monto);
-  document.getElementById('pcUsd').textContent='U$S '+fmt(usdReal);
-  document.getElementById('pcUsdEst').textContent=c.usdEst?'U$S '+fmt(r2(c.usdEst*(monto/montoCuota))):'—';
-  if (dif!==null) { document.getElementById('pcDif').textContent=(dif>=0?'+':'')+fmt(dif)+' USD'; document.getElementById('pcDif').style.color=dif>=0?'#4edea3':'#ffb4ab'; document.getElementById('pcDifRow').style.display='flex'; }
-  else document.getElementById('pcDifRow').style.display='none';
-  document.getElementById('pagoCalc').style.display='block';
-
-  // Bloque mora si pago parcial
-  const saldoImpago=r2(montoCuota-monto);
+  if (!monto || !tc) { document.getElementById('pagoCalc').style.display = 'none'; document.getElementById('pagoMoraBloque').style.display = 'none'; return; }
+  const p = prestamos.find(x => x.id === pagoData.pid);
+  const c = p.cuotas[pagoData.cidx];
+  const usdReal = r2(monto/tc);
+  const dif = c.usdEst ? r2(usdReal - c.usdEst*(monto/montoCuota)) : null;
+  document.getElementById('pcPesos').textContent = '$ ' + fmt(monto);
+  document.getElementById('pcUsd').textContent = 'U$S ' + fmt(usdReal);
+  document.getElementById('pcUsdEst').textContent = c.usdEst ? 'U$S ' + fmt(r2(c.usdEst*(monto/montoCuota))) : '—';
+  if (dif !== null) { document.getElementById('pcDif').textContent = (dif>=0?'+':'')+fmt(dif)+' USD'; document.getElementById('pcDif').style.color = dif>=0?'#4edea3':'#ffb4ab'; document.getElementById('pcDifRow').style.display = 'flex'; }
+  else document.getElementById('pcDifRow').style.display = 'none';
+  document.getElementById('pagoCalc').style.display = 'block';
+  const saldoImpago = r2(montoCuota - monto);
   if (saldoImpago > 0.01) {
-    const tnaMora=r2(tnaBase+15);
-    const rMora=(tnaMora/100)/12;
-    const nuevaCuotaMora=r2(saldoImpago*(1+rMora)); // 1 cuota
-    const fechaMora=addMonths(c.fecha,1);
-    document.getElementById('pmSaldo').textContent='$ '+fmt(saldoImpago);
-    document.getElementById('pmTnaBase').textContent=tnaBase+'% TNA';
-    document.getElementById('pmTnaMora').textContent=tnaMora+'% TNA';
-    document.getElementById('pmNuevaCuota').textContent='$ '+fmt(nuevaCuotaMora);
-    document.getElementById('pmFechaMora').textContent=formatDate(fechaMora);
-    document.getElementById('pagoMoraBloque').style.display='block';
-    // Cambiar botón a naranja para indicar mora
-    document.getElementById('pagoConfirmBtn').style.background='#ffb95f';
-    document.getElementById('pagoConfirmBtn').style.color='#3e2400';
-    document.getElementById('pagoConfirmBtn').textContent='Confirmar + agregar mora';
+    const tnaMora = r2(tnaBase + 15);
+    const rMora = (tnaMora/100)/12;
+    const nuevaCuota = r2(saldoImpago * (1 + rMora));
+    const fechaMora = addMonths(c.fecha, 1);
+    document.getElementById('pmSaldo').textContent = '$ ' + fmt(saldoImpago);
+    document.getElementById('pmTnaBase').textContent = tnaBase + '% TNA';
+    document.getElementById('pmTnaMora').textContent = tnaMora + '% TNA';
+    document.getElementById('pmNuevaCuota').textContent = '$ ' + fmt(nuevaCuota);
+    document.getElementById('pmFechaMora').textContent = formatDate(fechaMora);
+    document.getElementById('pagoMoraBloque').style.display = 'block';
+    document.getElementById('pagoConfirmBtn').style.background = '#ffb95f';
+    document.getElementById('pagoConfirmBtn').style.color = '#3e2400';
+    document.getElementById('pagoConfirmBtn').textContent = 'Confirmar + mora';
   } else {
-    document.getElementById('pagoMoraBloque').style.display='none';
-    document.getElementById('pagoConfirmBtn').style.background='#4edea3';
-    document.getElementById('pagoConfirmBtn').style.color='#003824';
-    document.getElementById('pagoConfirmBtn').textContent='Confirmar cobro';
+    document.getElementById('pagoMoraBloque').style.display = 'none';
+    document.getElementById('pagoConfirmBtn').style.background = '#4edea3';
+    document.getElementById('pagoConfirmBtn').style.color = '#003824';
+    document.getElementById('pagoConfirmBtn').textContent = 'Confirmar cobro';
   }
 }
 
-function confirmarPago() {
+async function confirmarPago() {
   if (!pagoData) return;
-  const monto=parseFloat(document.getElementById('pagoMonto').value);
-  const tc=parseFloat(document.getElementById('pagoTc').value);
-  if (!monto || !tc) { alert('Ingresá el monto cobrado y el TC real del día.'); return; }
-  if (monto <= 0) { alert('El monto debe ser mayor a cero.'); return; }
+  const monto = parseFloat(document.getElementById('pagoMonto').value);
+  const tc = parseFloat(document.getElementById('pagoTc').value);
+  if (!monto || !tc) { alert('Ingresá el monto y el TC real.'); return; }
+  const p = prestamos.find(x => x.id === pagoData.pid);
+  const c = p.cuotas[pagoData.cidx];
+  const montoCuota = pagoData.montoCuota;
+  const saldoImpago = r2(montoCuota - monto);
+  const esParcial = saldoImpago > 0.01;
 
-  const p=S.prestamos.find(x=>x.id===pagoData.pid);
-  const c=p.cuotas[pagoData.cidx];
-  const montoCuota=pagoData.montoCuota;
-  const tnaBase=pagoData.tnaBase;
-  const saldoImpago=r2(montoCuota-monto);
-  const esParcial=saldoImpago > 0.01;
+  c.pagada = true; c.fechaPago = todayStr(); c.tcReal = tc; c.usdReal = r2(monto/tc);
+  c.monto = monto;
+  if (esParcial) c.nota = (c.nota?c.nota+' · ':'') + 'Pago parcial $' + fmt(monto);
 
-  // Marcar cuota como pagada (puede ser parcial)
-  c.pagada=true;
-  c.fechaPago=todayStr();
-  c.tcReal=tc;
-  c.usdReal=r2(monto/tc);
-  c.monto=monto; // actualizar al monto realmente cobrado
-  if (esParcial) c.nota=(c.nota?c.nota+' · ':'')+'Pago parcial $'+fmt(monto);
+  const hEntry = {
+    id: uid(), prestamoId: p.id, nombre: p.nombre, cuotaN: c.n,
+    monto, tcReal: tc, usdReal: c.usdReal,
+    usdEst: c.usdEst ? r2(c.usdEst*(monto/montoCuota)) : null,
+    fecha: c.fechaPago, tipo: 'pago',
+    nota: esParcial ? `Pago parcial $${fmt(monto)} de $${fmt(montoCuota)}` : null,
+  };
+  historial.unshift(hEntry);
 
-  // Registrar en historial
-  S.historial.unshift({
-    id:uid(), prestamoId:p.id, nombre:p.nombre, cuotaN:c.n,
-    monto:monto, tcReal:tc, usdReal:c.usdReal,
-    usdEst:c.usdEst?r2(c.usdEst*(monto/montoCuota)):null,
-    fecha:c.fechaPago,
-    nota: esParcial ? `Pago parcial ($ ${fmt(monto)} de $ ${fmt(montoCuota)})` : null
-  });
-
-  // Si pago parcial → generar cuota de mora
   if (esParcial) {
-    const tnaMora=r2(tnaBase+15);
-    const rMora=(tnaMora/100)/12;
-    const nuevaCuotaMora=r2(saldoImpago*(1+rMora));
-    const fechaMora=addMonths(c.fecha,1);
-    const maxN=Math.max(...p.cuotas.map(x=>x.n));
-    const mesKey=fechaMora.slice(0,7);
-    const tcRofexMora=S.rofex[mesKey]||null;
-    p.cuotas.push({
-      n: maxN+1,
-      fecha: fechaMora,
-      monto: nuevaCuotaMora,
-      capital: saldoImpago,
-      interes: r2(saldoImpago*rMora),
-      saldo: 0,
-      tcRofex: tcRofexMora,
-      usdEst: tcRofexMora?r2(nuevaCuotaMora/tcRofexMora):null,
-      pagada: false, fechaPago: null, tcReal: null, usdReal: null,
-      esRefi: true,
-      nota: `Mora: saldo $ ${fmt(saldoImpago)} al ${tnaMora}% TNA`
-    });
-    p.numCuotas=p.cuotas.length;
-    // Log mora en historial
-    S.historial.unshift({
-      id:uid(), prestamoId:p.id, nombre:p.nombre, cuotaN:'MORA',
-      monto:saldoImpago, tcReal:null, usdReal:null, usdEst:null,
-      fecha:todayStr(), tipo:'mora',
-      nota:`Mora generada: $ ${fmt(nuevaCuotaMora)} para ${formatDate(fechaMora)} al ${tnaMora}% TNA`
-    });
+    const tnaMora = r2(pagoData.tnaBase + 15);
+    const rMora = (tnaMora/100)/12;
+    const nuevaCuota = r2(saldoImpago * (1+rMora));
+    const fechaMora = addMonths(c.fecha, 1);
+    const maxN = Math.max(...p.cuotas.map(x => x.n));
+    const mesKey = fechaMora.slice(0,7);
+    const tcRofexMora = rofex[mesKey] || null;
+    const moraEntry = {
+      n: maxN+1, fecha: fechaMora, monto: nuevaCuota, capital: saldoImpago,
+      interes: r2(saldoImpago*rMora), saldo: 0,
+      tcRofex: tcRofexMora, usdEst: tcRofexMora?r2(nuevaCuota/tcRofexMora):null,
+      pagada: false, fechaPago: null, tcReal: null, usdReal: null, esRefi: true,
+      nota: `Mora: saldo $${fmt(saldoImpago)} al ${tnaMora}% TNA`,
+    };
+    p.cuotas.push(moraEntry);
+    p.numCuotas = p.cuotas.length;
+    const moraHEntry = {
+      id: uid(), prestamoId: p.id, nombre: p.nombre, cuotaN: 'MORA',
+      monto: saldoImpago, tcReal: null, usdReal: null, usdEst: null,
+      fecha: todayStr(), tipo: 'mora',
+      nota: `Mora generada: $${fmt(nuevaCuota)} para ${formatDate(fechaMora)} al ${tnaMora}% TNA`,
+    };
+    historial.unshift(moraHEntry);
+    // Guardar mora en historial
+    apiSaveHistorial(moraHEntry);
   }
 
-  p.estado=getEstado(p);
-  save(); closePago(); renderAll(); syncData();
+  p.estado = getEstado(p);
+  closePago(); renderAll();
+  // Guardar cambios
+  await apiSavePrestamo(p);
+  await apiSaveHistorial(hEntry);
 }
 
 // ══════════════════════════════════════════════
 //  MODAL REFINANCIAR
 // ══════════════════════════════════════════════
 function openRefi(pid, cidx) {
-  const p=S.prestamos.find(x=>x.id===pid); const c=p.cuotas[cidx];
-  // Saldo impago = monto de la cuota que no pagó (o pagó parcial)
-  // Para cuotas no pagadas, el saldo impago es el monto completo
-  // Si hay info de pago parcial, usar el saldo registrado
+  const p = prestamos.find(x => x.id === pid); const c = p.cuotas[cidx];
   const saldoImpago = c.saldo > 0 ? c.saldo : c.monto;
-  refiData={pid, cidx, saldoImpago};
-  document.getElementById('refiInfo').innerHTML=`
+  refiData = { pid, cidx, saldoImpago };
+  document.getElementById('refiInfo').innerHTML = `
     <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:#8892aa">Deudor</span><span style="font-weight:700;color:#f1f5f9">${p.nombre}</span></div>
     <div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="color:#8892aa">Cuota N°</span><span style="color:#f1f5f9">#${c.n}</span></div>
     <div style="display:flex;justify-content:space-between"><span style="color:#8892aa">Monto impago</span><span style="font-weight:700;color:#ffb95f">$ ${fmt(c.monto)}</span></div>
-    ${c.nota?`<div style="margin-top:7px;font-size:11px;color:#ffb95f">ℹ ${c.nota}</div>`:''}`;
-  document.getElementById('refiSaldo').value=saldoImpago;
-  document.getElementById('refiTasa').value=p.tna;
-  document.getElementById('refiCuotas').value=1;
-  document.getElementById('reFecha').value=addMonths(c.fecha,1);
-  document.getElementById('refiCalc').style.display='none';
-  document.getElementById('refiOverlay').style.display='flex';
+    ${c.nota ? `<div style="margin-top:7px;font-size:11px;color:#ffb95f">ℹ ${c.nota}</div>` : ''}`;
+  document.getElementById('refiSaldo').value = saldoImpago;
+  document.getElementById('refiTasa').value = p.tna;
+  document.getElementById('refiCuotas').value = 1;
+  document.getElementById('reFecha').value = addMonths(c.fecha, 1);
+  document.getElementById('refiCalc').style.display = 'none';
+  document.getElementById('refiOverlay').style.display = 'flex';
 }
-function closeRefi() { document.getElementById('refiOverlay').style.display='none'; refiData=null; }
-document.getElementById('refiOverlay').addEventListener('click', e => { if(e.target===document.getElementById('refiOverlay')) closeRefi(); });
+function closeRefi() { document.getElementById('refiOverlay').style.display = 'none'; refiData = null; }
+document.getElementById('refiOverlay').addEventListener('click', e => { if (e.target===document.getElementById('refiOverlay')) closeRefi(); });
 
 function calcRefi() {
-  const saldo=parseFloat(document.getElementById('refiSaldo').value);
-  const tasa=parseFloat(document.getElementById('refiTasa').value)||0;
-  const n=parseInt(document.getElementById('refiCuotas').value)||1;
-  if (!saldo||!n) { document.getElementById('refiCalc').style.display='none'; return; }
-  const {cuota}=french(saldo,tasa,n);
-  document.getElementById('rcCuota').textContent='$ '+fmt(cuota)+' × '+n;
-  document.getElementById('rcTotal').textContent='$ '+fmt(r2(cuota*n));
-  document.getElementById('refiCalc').style.display='block';
+  const saldo = parseFloat(document.getElementById('refiSaldo').value);
+  const tasa = parseFloat(document.getElementById('refiTasa').value) || 0;
+  const n = parseInt(document.getElementById('refiCuotas').value) || 1;
+  if (!saldo || !n) { document.getElementById('refiCalc').style.display = 'none'; return; }
+  const { cuota } = french(saldo, tasa, n);
+  document.getElementById('rcCuota').textContent = '$ ' + fmt(cuota) + ' × ' + n;
+  document.getElementById('rcTotal').textContent = '$ ' + fmt(r2(cuota*n));
+  document.getElementById('refiCalc').style.display = 'block';
 }
 
-function confirmarRefi() {
+async function confirmarRefi() {
   if (!refiData) return;
-  const saldo=parseFloat(document.getElementById('refiSaldo').value);
-  const tasa=parseFloat(document.getElementById('refiTasa').value)||0;
-  const n=parseInt(document.getElementById('refiCuotas').value)||1;
-  const fechaInicio=document.getElementById('reFecha').value;
-  if (!saldo||!fechaInicio) { alert('Completá los campos.'); return; }
-  const p=S.prestamos.find(x=>x.id===refiData.pid);
-  const cOrig=p.cuotas[refiData.cidx];
-  // Marcar cuota original como "refinanciada" (no pagada normal)
-  cOrig.nota=(cOrig.nota||'')+' | Refinanciada';
-  cOrig.esRefi=true;
-  // Generar nuevas cuotas al final
-  const {cuota,sched}=french(saldo,tasa,n);
-  const maxN=Math.max(...p.cuotas.map(c=>c.n));
-  const nuevasCuotas=sched.map((s,i) => {
-    const mesKey=addMonths(fechaInicio,i).slice(0,7);
-    const tcR=S.rofex[mesKey]||null;
-    return { n:maxN+1+i, fecha:addMonths(fechaInicio,i), monto:s.cuota, capital:s.capital, interes:s.interes, saldo:s.saldo,
-      tcRofex:tcR, usdEst:tcR?r2(s.cuota/tcR):null, pagada:false, fechaPago:null, tcReal:null, usdReal:null, esRefi:true, nota:'Refinanciación' };
+  const saldo = parseFloat(document.getElementById('refiSaldo').value);
+  const tasa = parseFloat(document.getElementById('refiTasa').value) || 0;
+  const n = parseInt(document.getElementById('refiCuotas').value) || 1;
+  const fechaInicio = document.getElementById('reFecha').value;
+  if (!saldo || !fechaInicio) { alert('Completá los campos.'); return; }
+  const p = prestamos.find(x => x.id === refiData.pid);
+  const cOrig = p.cuotas[refiData.cidx];
+  cOrig.nota = (cOrig.nota || '') + ' | Refinanciada';
+  cOrig.esRefi = true;
+  const { cuota, sched } = french(saldo, tasa, n);
+  const maxN = Math.max(...p.cuotas.map(c => c.n));
+  const nuevasCuotas = sched.map((s,i) => {
+    const mesKey = addMonths(fechaInicio, i).slice(0,7);
+    const tcR = rofex[mesKey] || null;
+    return { n:maxN+1+i, fecha:addMonths(fechaInicio,i), monto:s.cuota, capital:s.capital, interes:s.interes, saldo:s.saldo, tcRofex:tcR, usdEst:tcR?r2(s.cuota/tcR):null, pagada:false, fechaPago:null, tcReal:null, usdReal:null, esRefi:true, nota:'Refinanciación' };
   });
   p.cuotas.push(...nuevasCuotas);
-  p.numCuotas=p.cuotas.length;
-  p.estado=getEstado(p);
-  // Log historial
-  S.historial.unshift({id:uid(),prestamoId:p.id,nombre:p.nombre,cuotaN:'REFI',monto:saldo,tcReal:null,usdReal:null,usdEst:null,fecha:todayStr(),tipo:'refinanciacion',nota:`Refinanciación $${fmt(saldo)} en ${n} cuota${n>1?'s':''} al ${tasa}% TNA`});
-  save(); closeRefi(); renderAll(); syncData();
+  p.numCuotas = p.cuotas.length;
+  p.estado = getEstado(p);
+  const hEntry = { id:uid(), prestamoId:p.id, nombre:p.nombre, cuotaN:'REFI', monto:saldo, tcReal:null, usdReal:null, usdEst:null, fecha:todayStr(), tipo:'refinanciacion', nota:`Refinanciación $${fmt(saldo)} en ${n} cuota${n>1?'s':''} al ${tasa}% TNA` };
+  historial.unshift(hEntry);
+  closeRefi(); renderAll();
+  await apiSavePrestamo(p);
+  await apiSaveHistorial(hEntry);
 }
 
 // ══════════════════════════════════════════════
 //  LÓGICA
 // ══════════════════════════════════════════════
 function getEstado(p) {
-  if (p.cuotas.every(c=>c.pagada)) return 'cancelado';
-  const h=todayStr();
-  if (p.cuotas.some(c=>!c.pagada&&c.fecha<h)) return 'atrasado';
+  if (p.cuotas.every(c => c.pagada)) return 'cancelado';
+  if (p.cuotas.some(c => !c.pagada && c.fecha < todayStr())) return 'atrasado';
   return 'activo';
 }
-function getSaldo(p) { return p.cuotas.filter(c=>!c.pagada).reduce((s,c)=>s+c.monto,0); }
-function getUsdRec(p) { return p.cuotas.filter(c=>c.usdReal).reduce((s,c)=>s+c.usdReal,0); }
-function getUsdEstPendiente(p) { return p.cuotas.filter(c=>!c.pagada&&c.usdEst).reduce((s,c)=>s+c.usdEst,0); }
+function getUsdRec(p) { return p.cuotas.filter(c => c.usdReal).reduce((s,c) => s+c.usdReal, 0); }
+function getUsdEstPendiente(p) { return p.cuotas.filter(c => !c.pagada && c.usdEst).reduce((s,c) => s+c.usdEst, 0); }
 function getUsdEnCalle(p) { return Math.max(0, p.usdInvertidos - getUsdRec(p)); }
-
 function getTIR(p) {
-  // TIR calculada con lo que ya cobró (real) + lo que falta (estimado con rofex)
   const flows = p.cuotas.map(c => c.usdReal || c.usdEst || 0);
-  if (flows.every(f=>f===0)) return null;
+  if (flows.every(f => f === 0)) return null;
   return tirAnual(p.usdInvertidos, flows);
 }
-
-// Aplica TC Rofex cargados a cuotas pendientes de todos los préstamos
 function aplicarRofexATodos() {
-  S.prestamos.forEach(p => {
+  prestamos.forEach(p => {
     p.cuotas.forEach(c => {
       if (!c.pagada) {
-        const mesKey = c.fecha.slice(0,7);
-        const tc = S.rofex[mesKey] || null;
+        const tc = rofex[c.fecha.slice(0,7)] || null;
         c.tcRofex = tc;
         c.usdEst = tc ? r2(c.monto/tc) : null;
       }
     });
   });
 }
+async function delPrestamo(id) {
+  if (!confirm('¿Eliminar este préstamo?')) return;
+  prestamos = prestamos.filter(x => x.id !== id);
+  historial = historial.filter(x => x.prestamoId !== id);
+  renderAll();
+  await apiDeletePrestamo(id);
+}
 
 // ══════════════════════════════════════════════
 //  RENDER ALL
 // ══════════════════════════════════════════════
 function renderAll() {
-  S.prestamos.forEach(p => p.estado=getEstado(p));
+  prestamos.forEach(p => p.estado = getEstado(p));
   aplicarRofexATodos();
   renderDashboard();
   renderPrestamos();
   updateSidebar();
-  // Si el panel rofex está activo, refrescarlo
   if (document.getElementById('tab-rofex').classList.contains('active')) renderRofexPanel();
 }
 
 function updateSidebar() {
-  const activos=S.prestamos.filter(p=>p.estado!=='cancelado');
-  const usdCalle=activos.reduce((s,p)=>s+getUsdEnCalle(p),0);
-  const usdEstTotal=activos.reduce((s,p)=>s+getUsdEstPendiente(p),0);
-  document.getElementById('sideUSD').textContent='U$S '+fmt(r2(usdCalle));
-  document.getElementById('sideEstimado').textContent=usdEstTotal>0?`+U$S ${fmt(r2(usdEstTotal))} est. pendiente`:'Sin TC Rofex cargados';
-  const conTir=activos.filter(p=>getTIR(p)!==null);
-  if (conTir.length>0) {
-    const prom=conTir.reduce((s,p)=>s+getTIR(p),0)/conTir.length;
-    document.getElementById('sideTIR').textContent=`TIR prom: ${fmtPct(prom*100)}% anual USD`;
-  } else document.getElementById('sideTIR').textContent='';
+  const activos = prestamos.filter(p => p.estado !== 'cancelado');
+  const usdCalle = activos.reduce((s,p) => s+getUsdEnCalle(p), 0);
+  const usdEst = activos.reduce((s,p) => s+getUsdEstPendiente(p), 0);
+  document.getElementById('sideUSD').textContent = 'U$S ' + fmt(r2(usdCalle));
+  document.getElementById('sideEstimado').textContent = usdEst > 0 ? `+U$S ${fmt(r2(usdEst))} est.` : 'Sin TC Rofex cargados';
+  const conTir = activos.filter(p => getTIR(p) !== null);
+  if (conTir.length > 0) {
+    const prom = conTir.reduce((s,p) => s+getTIR(p), 0) / conTir.length;
+    document.getElementById('sideTIR').textContent = `TIR prom: ${fmtPct(prom*100)}% anual USD`;
+  } else document.getElementById('sideTIR').textContent = '';
 }
 
 // ══════════════════════════════════════════════
 //  DASHBOARD
 // ══════════════════════════════════════════════
 function renderDashboard() {
-  const hoy=todayStr(), mes=hoy.slice(0,7);
-  const activos=S.prestamos.filter(p=>p.estado!=='cancelado');
-  const usdCalle=activos.reduce((s,p)=>s+getUsdEnCalle(p),0);
-  const usdEstMes=S.prestamos.flatMap(p=>p.cuotas.filter(c=>!c.pagada&&c.fecha.startsWith(mes)&&c.usdEst)).reduce((s,c)=>s+c.usdEst,0);
-  const pesosMes=S.prestamos.flatMap(p=>p.cuotas.filter(c=>!c.pagada&&c.fecha.startsWith(mes))).reduce((s,c)=>s+c.monto,0);
-  const atrasados=S.prestamos.filter(p=>p.estado==='atrasado').length;
-  const usdTotalRec=S.historial.filter(h=>h.tipo!=='refinanciacion').reduce((s,h)=>s+(h.usdReal||0),0);
-  const usdTotalInv=S.prestamos.reduce((s,p)=>s+p.usdInvertidos,0);
-  document.getElementById('dashSub').textContent=`${activos.length} activo${activos.length!==1?'s':''} · ${S.prestamos.filter(p=>p.estado==='cancelado').length} completados`;
-  document.getElementById('dashMonthLbl').textContent=`${MN[new Date().getMonth()]} ${new Date().getFullYear()}`;
+  const hoy = todayStr(), mes = hoy.slice(0,7);
+  const activos = prestamos.filter(p => p.estado !== 'cancelado');
+  const usdCalle = activos.reduce((s,p) => s+getUsdEnCalle(p), 0);
+  const usdEstMes = prestamos.flatMap(p => p.cuotas.filter(c => !c.pagada && c.fecha.startsWith(mes) && c.usdEst)).reduce((s,c) => s+c.usdEst, 0);
+  const pesosMes = prestamos.flatMap(p => p.cuotas.filter(c => !c.pagada && c.fecha.startsWith(mes))).reduce((s,c) => s+c.monto, 0);
+  const atrasados = prestamos.filter(p => p.estado === 'atrasado').length;
+  const usdTotalRec = historial.filter(h => h.tipo === 'pago').reduce((s,h) => s+(h.usdReal||0), 0);
+  const usdTotalInv = prestamos.reduce((s,p) => s+p.usdInvertidos, 0);
 
-  // Alerta Rofex
-  const sinTC=S.prestamos.flatMap(p=>p.cuotas.filter(c=>!c.pagada&&!c.usdEst));
-  const mesesSin=[...new Set(sinTC.map(c=>c.fecha.slice(0,7)))].sort();
-  const alertaEl=document.getElementById('rofexAlerta');
-  if (mesesSin.length>0) {
-    alertaEl.style.display='flex';
-    document.getElementById('rofexAlertaTxt').textContent=`Faltan TC Rofex para ${mesesSin.length} mes${mesesSin.length>1?'es':''}: ${mesesSin.map(m=>{ const[y,mo]=m.split('-'); return MNS[parseInt(mo)-1]+'/'+y.slice(2); }).join(', ')}`;
-  } else alertaEl.style.display='none';
+  document.getElementById('dashSub').textContent = `${activos.length} activo${activos.length!==1?'s':''} · ${prestamos.filter(p=>p.estado==='cancelado').length} completados`;
+  document.getElementById('dashMonthLbl').textContent = `${MN[new Date().getMonth()]} ${new Date().getFullYear()}`;
 
-  document.getElementById('kpiCards').innerHTML=`
-    <div class="kpi-card">
-      <div style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.2em;color:#8892aa;margin-bottom:11px">USD en la calle</div>
-      <div style="font-size:24px;font-weight:900;letter-spacing:-.04em;color:#4edea3">U$S ${fmt(r2(usdCalle))}</div>
-      <div style="font-size:10px;color:#475569;margin-top:3px">${activos.length} préstamos activos</div>
-    </div>
-    <div class="kpi-card">
-      <div style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.2em;color:#8892aa;margin-bottom:11px">A cobrar este mes</div>
-      <div style="font-size:20px;font-weight:900;letter-spacing:-.03em;color:#adc6ff">$ ${fmt(pesosMes)}</div>
-      ${usdEstMes>0?`<div style="font-size:13px;font-weight:700;color:#4edea3;margin-top:3px">≈ U$S ${fmt(r2(usdEstMes))} est.</div>`:`<div style="font-size:10px;color:#475569;margin-top:3px">Sin TC Rofex cargados</div>`}
-    </div>
-    <div class="kpi-card">
-      <div style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.2em;color:#8892aa;margin-bottom:11px">Riesgo</div>
-      <div style="display:flex;align-items:center;gap:9px">
-        <span style="font-size:34px;font-weight:900;color:${atrasados>0?'#ffb4ab':'#4edea3'}">${atrasados}</span>
-        <span class="badge" style="background:${atrasados>0?'rgba(255,180,171,0.1)':'rgba(78,222,163,0.1)'};color:${atrasados>0?'#ffb4ab':'#4edea3'}">${atrasados>0?'Atrasados':'Al día'}</span>
-      </div>
-    </div>
-    <div class="kpi-card">
-      <div style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.2em;color:#8892aa;margin-bottom:11px">USD recuperado</div>
-      <div style="font-size:20px;font-weight:900;letter-spacing:-.03em;color:#4edea3">U$S ${fmt(r2(usdTotalRec))}</div>
-      <div style="font-size:10px;color:#475569;margin-top:3px">de U$S ${fmt(r2(usdTotalInv))} invertidos</div>
-    </div>`;
+  const sinTC = prestamos.flatMap(p => p.cuotas.filter(c => !c.pagada && !c.usdEst));
+  const mesesSin = [...new Set(sinTC.map(c => c.fecha.slice(0,7)))].sort();
+  const alertaEl = document.getElementById('rofexAlerta');
+  if (mesesSin.length > 0) {
+    alertaEl.style.display = 'flex';
+    document.getElementById('rofexAlertaTxt').textContent = `Faltan TC Rofex para ${mesesSin.length} mes${mesesSin.length>1?'es':''}: ${mesesSin.map(m => { const[y,mo]=m.split('-'); return MNS[parseInt(mo)-1]+'/'+y.slice(2); }).join(', ')}`;
+  } else alertaEl.style.display = 'none';
 
-  const cuotasMes=S.prestamos.flatMap(p=>p.cuotas.filter(c=>!c.pagada&&c.fecha.startsWith(mes)).map(c=>({...c,pN:p.nombre,pId:p.id,cidx:c.n-1}))).sort((a,b)=>a.fecha.localeCompare(b.fecha));
-  const tbody=document.getElementById('dashTbody'), empty=document.getElementById('dashEmpty');
-  if (!cuotasMes.length) { tbody.innerHTML=''; empty.style.display='block'; return; }
-  empty.style.display='none';
-  tbody.innerHTML=cuotasMes.map(c => {
-    const late=c.fecha<hoy;
+  document.getElementById('kpiCards').innerHTML = `
+    <div class="kpi-card"><div style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.2em;color:#8892aa;margin-bottom:11px">USD en la calle</div><div style="font-size:24px;font-weight:900;color:#4edea3">U$S ${fmt(r2(usdCalle))}</div><div style="font-size:10px;color:#475569;margin-top:3px">${activos.length} préstamos activos</div></div>
+    <div class="kpi-card"><div style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.2em;color:#8892aa;margin-bottom:11px">A cobrar este mes</div><div style="font-size:20px;font-weight:900;color:#adc6ff">$ ${fmt(pesosMes)}</div>${usdEstMes>0?`<div style="font-size:13px;font-weight:700;color:#4edea3;margin-top:3px">≈ U$S ${fmt(r2(usdEstMes))} est.</div>`:`<div style="font-size:10px;color:#475569;margin-top:3px">Sin TC Rofex</div>`}</div>
+    <div class="kpi-card"><div style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.2em;color:#8892aa;margin-bottom:11px">Riesgo</div><div style="display:flex;align-items:center;gap:9px"><span style="font-size:34px;font-weight:900;color:${atrasados>0?'#ffb4ab':'#4edea3'}">${atrasados}</span><span class="badge" style="background:${atrasados>0?'rgba(255,180,171,0.1)':'rgba(78,222,163,0.1)'};color:${atrasados>0?'#ffb4ab':'#4edea3'}">${atrasados>0?'Atrasados':'Al día'}</span></div></div>
+    <div class="kpi-card"><div style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.2em;color:#8892aa;margin-bottom:11px">USD recuperado</div><div style="font-size:20px;font-weight:900;color:#4edea3">U$S ${fmt(r2(usdTotalRec))}</div><div style="font-size:10px;color:#475569;margin-top:3px">de U$S ${fmt(r2(usdTotalInv))} invertidos</div></div>`;
+
+  const cuotasMes = prestamos.flatMap(p => p.cuotas.filter(c => !c.pagada && c.fecha.startsWith(mes)).map(c => ({...c,pN:p.nombre,pId:p.id,cidx:c.n-1}))).sort((a,b) => a.fecha.localeCompare(b.fecha));
+  const tbody = document.getElementById('dashTbody'), empty = document.getElementById('dashEmpty');
+  if (!cuotasMes.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  tbody.innerHTML = cuotasMes.map(c => {
+    const late = c.fecha < hoy;
     return `<tr onmouseover="this.style.background='rgba(255,255,255,0.01)'" onmouseout="this.style.background=''">
-      <td class="td"><div style="display:flex;align-items:center;gap:9px">
-        <div style="width:28px;height:28px;border-radius:7px;background:${late?'rgba(255,180,171,0.1)':'rgba(173,198,255,0.1)'};display:flex;align-items:center;justify-content:center;color:${late?'#ffb4ab':'#adc6ff'}"><span class="ms" style="font-size:13px">${late?'warning':'person'}</span></div>
-        <div><div style="font-weight:700;color:#f1f5f9;font-size:13px">${c.pN}</div>${c.esRefi?'<div style="font-size:9px;color:#ffb95f">REFI</div>':''}</div>
-      </div></td>
+      <td class="td"><div style="display:flex;align-items:center;gap:9px"><div style="width:28px;height:28px;border-radius:7px;background:${late?'rgba(255,180,171,0.1)':'rgba(173,198,255,0.1)'};display:flex;align-items:center;justify-content:center;color:${late?'#ffb4ab':'#adc6ff'}"><span class="ms" style="font-size:13px">${late?'warning':'person'}</span></div><div><div style="font-weight:700;color:#f1f5f9;font-size:13px">${c.pN}</div>${c.esRefi?'<div style="font-size:9px;color:#ffb95f">REFI</div>':''}</div></div></td>
       <td class="td"><div style="font-weight:700;color:#adc6ff;font-size:13px">$ ${fmt(c.monto)}</div><div style="font-size:10px;color:#64748b">Cuota #${c.n}</div></td>
       <td class="td" style="color:${c.tcRofex?'#64748b':'#374151'};font-size:12px">${c.tcRofex?'$ '+c.tcRofex:'—'}</td>
       <td class="td" style="font-weight:700;color:${c.usdEst?'#4edea3':'#374151'};font-size:13px">${c.usdEst?'U$S '+fmt(c.usdEst):'—'}</td>
       <td class="td" style="color:${late?'#ffb4ab':'#f1f5f9'};font-weight:600;font-size:12px">${formatDate(c.fecha)}</td>
       <td class="td"><span class="badge" style="background:${late?'rgba(255,180,171,0.1)':'rgba(173,198,255,0.1)'};color:${late?'#ffb4ab':'#adc6ff'}">${late?'Atrasado':'Pendiente'}</span></td>
-      <td class="td" style="text-align:right">
-        <div style="display:flex;gap:6px;justify-content:flex-end">
-          <button onclick="openPago('${c.pId}',${c.cidx})" style="background:rgba(78,222,163,0.1);color:#4edea3;border:none;padding:6px 12px;border-radius:7px;font-size:10px;font-weight:900;cursor:pointer;text-transform:uppercase;font-family:Inter,sans-serif;transition:all .2s" onmouseover="this.style.background='#4edea3';this.style.color='#003824'" onmouseout="this.style.background='rgba(78,222,163,0.1)';this.style.color='#4edea3'">Cobrar</button>
-          <button onclick="openRefi('${c.pId}',${c.cidx})" style="background:rgba(255,185,95,0.1);color:#ffb95f;border:none;padding:6px 10px;border-radius:7px;font-size:10px;font-weight:900;cursor:pointer;font-family:Inter,sans-serif;transition:all .2s" title="Refinanciar" onmouseover="this.style.background='#ffb95f';this.style.color='#3e2400'" onmouseout="this.style.background='rgba(255,185,95,0.1)';this.style.color='#ffb95f'"><span class="ms" style="font-size:13px">refresh</span></button>
-        </div>
-      </td>
+      <td class="td" style="text-align:right"><div style="display:flex;gap:6px;justify-content:flex-end">
+        <button onclick="openPago('${c.pId}',${c.cidx})" style="background:rgba(78,222,163,0.1);color:#4edea3;border:none;padding:6px 12px;border-radius:7px;font-size:10px;font-weight:900;cursor:pointer;text-transform:uppercase;font-family:Inter,sans-serif;transition:all .2s" onmouseover="this.style.background='#4edea3';this.style.color='#003824'" onmouseout="this.style.background='rgba(78,222,163,0.1)';this.style.color='#4edea3'">Cobrar</button>
+        <button onclick="openRefi('${c.pId}',${c.cidx})" style="background:rgba(255,185,95,0.1);color:#ffb95f;border:none;padding:6px 10px;border-radius:7px;font-size:10px;font-weight:900;cursor:pointer;font-family:Inter,sans-serif;transition:all .2s" title="Refinanciar" onmouseover="this.style.background='#ffb95f';this.style.color='#3e2400'" onmouseout="this.style.background='rgba(255,185,95,0.1)';this.style.color='#ffb95f'"><span class="ms" style="font-size:13px">refresh</span></button>
+      </div></td>
     </tr>`;
   }).join('');
 }
@@ -1139,14 +1105,12 @@ function renderDashboard() {
 // ══════════════════════════════════════════════
 //  PRÉSTAMOS
 // ══════════════════════════════════════════════
-let curSearch='';
-function doSearch() { curSearch=document.getElementById('searchInput').value.toLowerCase(); renderPrestamos(); }
-function setFilter(f,el) { curFilter=f; document.querySelectorAll('.fc').forEach(c=>c.classList.remove('active-fc')); el.classList.add('active-fc'); renderPrestamos(); }
-function delPrestamo(id) { if(!confirm('¿Eliminar este préstamo?'))return; S.prestamos=S.prestamos.filter(x=>x.id!==id); S.historial=S.historial.filter(x=>x.prestamoId!==id); save(); renderAll(); }
-function toggleCard(id) { const d=document.getElementById('detail-'+id),ch=document.getElementById('chev-'+id); const op=d.style.display==='none'; d.style.display=op?'block':'none'; ch.style.transform=op?'rotate(180deg)':'rotate(0)'; }
+function doSearch() { curSearch = document.getElementById('searchInput').value.toLowerCase(); renderPrestamos(); }
+function setFilter(f, el) { curFilter=f; document.querySelectorAll('.fc').forEach(c => c.classList.remove('active-fc')); el.classList.add('active-fc'); renderPrestamos(); }
+function toggleCard(id) { const d=document.getElementById('detail-'+id), ch=document.getElementById('chev-'+id); const op=d.style.display==='none'; d.style.display=op?'block':'none'; ch.style.transform=op?'rotate(180deg)':'rotate(0)'; }
 
 function renderPrestamos() {
-  let items=[...S.prestamos];
+  let items = [...prestamos];
   if (curFilter==='activo') items=items.filter(p=>p.estado==='activo');
   else if (curFilter==='atrasado') items=items.filter(p=>p.estado==='atrasado');
   else if (curFilter==='cancelado') items=items.filter(p=>p.estado==='cancelado');
@@ -1155,23 +1119,19 @@ function renderPrestamos() {
   if (!items.length) { list.innerHTML=''; empty.style.display='block'; return; }
   empty.style.display='none';
   const cols=['#adc6ff','#4edea3','#ffb95f','#f472b6','#818cf8','#34d399','#fb923c'];
-  list.innerHTML=items.map(p => {
-    const saldo=getSaldo(p), usdRec=getUsdRec(p), usdEnCalle=getUsdEnCalle(p), usdEstPend=getUsdEstPendiente(p);
+  list.innerHTML=items.map(p=>{
+    const usdRec=getUsdRec(p), usdEnCalle=getUsdEnCalle(p), usdEstPend=getUsdEstPendiente(p);
     const pagadas=p.cuotas.filter(c=>c.pagada).length, total=p.cuotas.length, pct=Math.round(pagadas/total*100);
     const col=cols[p.nombre.charCodeAt(0)%cols.length];
     const init=p.nombre.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
     const hoy=todayStr();
     const tir=getTIR(p);
-    const estadoEl={activo:`<span class="badge" style="background:rgba(173,198,255,0.1);color:#adc6ff">Activo</span>`,atrasado:`<span class="badge" style="background:rgba(255,180,171,0.1);color:#ffb4ab">Atrasado</span>`,cancelado:`<span class="badge" style="background:rgba(78,222,163,0.1);color:#4edea3">Completado</span>`}[p.estado];
-    // Estimativo total préstamo
     const usdTotalEst=usdRec+usdEstPend;
     const gananciaEst=r2(usdTotalEst-p.usdInvertidos);
-
-    const rows=p.cuotas.map((c,i) => {
+    const estadoEl={activo:`<span class="badge" style="background:rgba(173,198,255,0.1);color:#adc6ff">Activo</span>`,atrasado:`<span class="badge" style="background:rgba(255,180,171,0.1);color:#ffb4ab">Atrasado</span>`,cancelado:`<span class="badge" style="background:rgba(78,222,163,0.1);color:#4edea3">Completado</span>`}[p.estado];
+    const rows=p.cuotas.map((c,i)=>{
       let dc='#f1f5f9';
-      if(c.pagada) dc='#374151';
-      else if(c.fecha<hoy) dc='#ffb4ab';
-      else if(c.fecha.slice(0,7)===hoy.slice(0,7)) dc='#fbbf24';
+      if(c.pagada)dc='#374151';else if(c.fecha<hoy)dc='#ffb4ab';else if(c.fecha.slice(0,7)===hoy.slice(0,7))dc='#fbbf24';
       return `<tr style="${c.pagada?'opacity:.4':''}" onmouseover="this.style.background='rgba(255,255,255,0.01)'" onmouseout="this.style.background=''">
         <td style="padding:8px 18px;font-size:11px;font-weight:700;color:#64748b">#${c.n}${c.esRefi?'<span style="font-size:9px;color:#ffb95f;margin-left:3px">R</span>':''}</td>
         <td style="padding:8px 18px;font-size:12px;color:${dc}">${formatDate(c.fecha)}</td>
@@ -1180,67 +1140,25 @@ function renderPrestamos() {
         <td style="padding:8px 18px;font-size:11px;color:#475569">$ ${fmt(c.interes)}</td>
         <td style="padding:8px 18px;font-size:11px;color:${c.tcRofex?'#64748b':'#374151'}">${c.tcRofex?'$ '+c.tcRofex:'—'}</td>
         <td style="padding:8px 18px;font-size:12px;font-weight:700;color:${c.usdEst||c.usdReal?'#4edea3':'#374151'}">${c.usdReal?'U$S '+fmt(c.usdReal)+' <span style="font-size:9px;color:#475569">real</span>':c.usdEst?'U$S '+fmt(c.usdEst)+' <span style="font-size:9px;color:#374151">est</span>':'—'}</td>
-        <td style="padding:8px 18px;text-align:right">
-          ${c.pagada?`<span style="font-size:10px;color:#4edea3;font-weight:700">✓ TC ${c.tcReal||'—'}</span>`:
-          `<div style="display:flex;gap:5px;justify-content:flex-end">
-            <button onclick="openPago('${p.id}',${i})" style="background:rgba(78,222,163,0.1);color:#4edea3;border:none;padding:4px 10px;border-radius:6px;font-size:10px;font-weight:900;cursor:pointer;text-transform:uppercase;font-family:Inter,sans-serif;transition:all .2s" onmouseover="this.style.background='#4edea3';this.style.color='#003824'" onmouseout="this.style.background='rgba(78,222,163,0.1)';this.style.color='#4edea3'">Cobrar</button>
-            <button onclick="openRefi('${p.id}',${i})" style="background:rgba(255,185,95,0.08);color:#ffb95f;border:none;padding:4px 8px;border-radius:6px;font-size:10px;cursor:pointer;font-family:Inter,sans-serif" title="Refinanciar"><span class="ms" style="font-size:12px">refresh</span></button>
-          </div>`}
-        </td>
+        <td style="padding:8px 18px;text-align:right">${c.pagada?`<span style="font-size:10px;color:#4edea3;font-weight:700">✓ TC ${c.tcReal||'—'}</span>`:`<div style="display:flex;gap:5px;justify-content:flex-end"><button onclick="openPago('${p.id}',${i})" style="background:rgba(78,222,163,0.1);color:#4edea3;border:none;padding:4px 10px;border-radius:6px;font-size:10px;font-weight:900;cursor:pointer;text-transform:uppercase;font-family:Inter,sans-serif;transition:all .2s" onmouseover="this.style.background='#4edea3';this.style.color='#003824'" onmouseout="this.style.background='rgba(78,222,163,0.1)';this.style.color='#4edea3'">Cobrar</button><button onclick="openRefi('${p.id}',${i})" style="background:rgba(255,185,95,0.08);color:#ffb95f;border:none;padding:4px 8px;border-radius:6px;font-size:10px;cursor:pointer;font-family:Inter,sans-serif" title="Refinanciar"><span class="ms" style="font-size:12px">refresh</span></button></div>`}</td>
       </tr>`;
     }).join('');
-
     return `<div class="card-block" style="margin-bottom:10px">
       <div onclick="toggleCard('${p.id}')" style="display:flex;align-items:center;gap:13px;padding:18px 22px;cursor:pointer;transition:background .15s" onmouseover="this.style.background='rgba(255,255,255,0.01)'" onmouseout="this.style.background=''">
         <div style="width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;flex-shrink:0;background:${col}20;color:${col}">${init}</div>
         <div style="flex:1;min-width:0">
-          <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
-            <span style="font-weight:700;color:#f1f5f9;font-size:14px">${p.nombre}</span>
-            ${estadoEl}
-            ${p.estado==='cancelado'&&tir!==null?`<span style="background:rgba(78,222,163,0.1);color:#4edea3;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:700">TIR ${fmtPct(tir*100)}% USD</span>`:''}
-          </div>
+          <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap"><span style="font-weight:700;color:#f1f5f9;font-size:14px">${p.nombre}</span>${estadoEl}${p.estado==='cancelado'&&tir!==null?`<span style="background:rgba(78,222,163,0.1);color:#4edea3;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:700">TIR ${fmtPct(tir*100)}% USD</span>`:''}</div>
           <div style="font-size:10px;color:#64748b;margin-top:2px">${pagadas}/${total} cuotas · U$S ${fmt(p.usdInvertidos)} invertidos</div>
           <div style="width:160px;max-width:100%;height:3px;background:#222a3d;border-radius:2px;margin-top:6px;overflow:hidden"><div style="height:100%;border-radius:2px;background:${p.estado==='cancelado'?'#4edea3':'#adc6ff'};width:${pct}%;transition:width .5s ease"></div></div>
         </div>
-        <!-- Bloque central: completados → TIR + ganancia real / activos → estimativo / resto → — -->
-        ${p.estado==='cancelado' ? `
-        <div style="text-align:center;flex-shrink:0;padding:0 16px;border-left:1px solid rgba(255,255,255,0.05);border-right:1px solid rgba(255,255,255,0.05)">
-          <div style="font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:#64748b;margin-bottom:3px">Ganancia real</div>
-          <div style="font-size:15px;font-weight:900;color:${r2(usdRec-p.usdInvertidos)>=0?'#4edea3':'#ffb4ab'}">${(r2(usdRec-p.usdInvertidos)>=0?'+':'')+fmt(r2(usdRec-p.usdInvertidos))} USD</div>
-          <div style="font-size:9px;color:${tir!==null&&tir>0?'#4edea3':'#ffb4ab'};margin-top:1px">${tir!==null?'TIR '+fmtPct(tir*100)+'% USD':''}</div>
-        </div>` : `
-        <div style="text-align:center;flex-shrink:0;padding:0 16px;border-left:1px solid rgba(255,255,255,0.05);border-right:1px solid rgba(255,255,255,0.05)">
-          <div style="font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:#64748b;margin-bottom:3px">Est. total USD</div>
-          <div style="font-size:15px;font-weight:900;color:${usdEstPend>0?'#4edea3':'#374151'}">${usdEstPend>0?'U$S '+fmt(r2(usdTotalEst)):'—'}</div>
-          <div style="font-size:9px;color:${usdEstPend>0&&gananciaEst>=0?'#4edea3':'#ffb4ab'};margin-top:1px">${usdEstPend>0?(gananciaEst>=0?'+':'')+fmt(gananciaEst)+' USD':'<span style="color:#374151">—</span>'}</div>
-        </div>`}
-        <div style="text-align:right;flex-shrink:0">
-          <div style="font-size:10px;color:#64748b;margin-bottom:2px">USD en la calle</div>
-          <div style="font-size:17px;font-weight:900;color:${p.estado==='atrasado'?'#ffb4ab':p.estado==='cancelado'?'#4edea3':'#f1f5f9'}">U$S ${fmt(r2(usdEnCalle))}</div>
-          <div style="font-size:10px;color:#475569;margin-top:1px">rec: U$S ${fmt(r2(usdRec))}</div>
-        </div>
+        ${p.estado==='cancelado'?`<div style="text-align:center;flex-shrink:0;padding:0 16px;border-left:1px solid rgba(255,255,255,0.05);border-right:1px solid rgba(255,255,255,0.05)"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:#64748b;margin-bottom:3px">Ganancia real</div><div style="font-size:15px;font-weight:900;color:${r2(usdRec-p.usdInvertidos)>=0?'#4edea3':'#ffb4ab'}">${(r2(usdRec-p.usdInvertidos)>=0?'+':'')+fmt(r2(usdRec-p.usdInvertidos))} USD</div><div style="font-size:9px;color:${tir!==null&&tir>0?'#4edea3':'#ffb4ab'};margin-top:1px">${tir!==null?'TIR '+fmtPct(tir*100)+'% USD':''}</div></div>`:`<div style="text-align:center;flex-shrink:0;padding:0 16px;border-left:1px solid rgba(255,255,255,0.05);border-right:1px solid rgba(255,255,255,0.05)"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:#64748b;margin-bottom:3px">Est. total USD</div><div style="font-size:15px;font-weight:900;color:${usdEstPend>0?'#4edea3':'#374151'}">${usdEstPend>0?'U$S '+fmt(r2(usdTotalEst)):'—'}</div><div style="font-size:9px;color:${usdEstPend>0&&gananciaEst>=0?'#4edea3':'#ffb4ab'};margin-top:1px">${usdEstPend>0?(gananciaEst>=0?'+':'')+fmt(gananciaEst)+' USD':'<span style="color:#374151">—</span>'}</div></div>`}
+        <div style="text-align:right;flex-shrink:0"><div style="font-size:10px;color:#64748b;margin-bottom:2px">USD en la calle</div><div style="font-size:17px;font-weight:900;color:${p.estado==='atrasado'?'#ffb4ab':p.estado==='cancelado'?'#4edea3':'#f1f5f9'}">U$S ${fmt(r2(usdEnCalle))}</div><div style="font-size:10px;color:#475569;margin-top:1px">rec: U$S ${fmt(r2(usdRec))}</div></div>
         <span class="ms" id="chev-${p.id}" style="color:#64748b;margin-left:5px;transition:transform .3s">expand_more</span>
       </div>
       <div id="detail-${p.id}" style="display:none;border-top:1px solid rgba(255,255,255,0.03)">
-        <div style="display:grid;grid-template-columns:repeat(5,1fr)">
-          ${[['Capital $','$ '+fmt(p.capital),'#f1f5f9'],['TC préstamo','$ '+p.tcHoy,'#f1f5f9'],['USD invertidos','U$S '+fmt(p.usdInvertidos),'#4edea3'],['TNA',p.tna+'%','#adc6ff'],['USD recuperado','U$S '+fmt(r2(usdRec)),'#4edea3']].map(([l,v,c])=>`<div style="padding:12px 18px;border-right:1px solid rgba(255,255,255,0.03);border-bottom:1px solid rgba(255,255,255,0.03)"><p style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.15em;color:#64748b;margin-bottom:3px">${l}</p><p style="font-weight:700;font-size:13px;color:${c}">${v}</p></div>`).join('')}
-        </div>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr)">${[['Capital $','$ '+fmt(p.capital),'#f1f5f9'],['TC préstamo','$ '+p.tcHoy,'#f1f5f9'],['USD invertidos','U$S '+fmt(p.usdInvertidos),'#4edea3'],['TNA',p.tna+'%','#adc6ff'],['USD recuperado','U$S '+fmt(r2(usdRec)),'#4edea3']].map(([l,v,c])=>`<div style="padding:12px 18px;border-right:1px solid rgba(255,255,255,0.03);border-bottom:1px solid rgba(255,255,255,0.03)"><p style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.15em;color:#64748b;margin-bottom:3px">${l}</p><p style="font-weight:700;font-size:13px;color:${c}">${v}</p></div>`).join('')}</div>
         ${p.notas?`<div style="padding:9px 22px;border-bottom:1px solid rgba(255,255,255,0.03);font-size:12px;color:#8892aa"><span class="ms" style="font-size:12px;margin-right:4px;color:#475569">note</span>${p.notas}</div>`:''}
-        <div style="overflow-x:auto">
-          <table style="width:100%;border-collapse:collapse">
-            <thead><tr style="background:#131b2e">
-              <th style="padding:8px 18px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.15em;color:#64748b;text-align:left">N°</th>
-              <th style="padding:8px 18px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.15em;color:#64748b;text-align:left">Vto.</th>
-              <th style="padding:8px 18px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.15em;color:#64748b;text-align:left">Cuota $</th>
-              <th style="padding:8px 18px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.15em;color:#64748b;text-align:left">Capital</th>
-              <th style="padding:8px 18px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.15em;color:#64748b;text-align:left">Interés</th>
-              <th style="padding:8px 18px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.15em;color:#64748b;text-align:left">TC Rofex</th>
-              <th style="padding:8px 18px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.15em;color:#64748b;text-align:left">USD</th>
-              <th style="padding:8px 18px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.15em;color:#64748b;text-align:right">Acción</th>
-            </tr></thead>
-            <tbody>${rows}</tbody>
-          </table>
-        </div>
+        <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse"><thead><tr style="background:#131b2e"><th style="padding:8px 18px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.15em;color:#64748b;text-align:left">N°</th><th style="padding:8px 18px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.15em;color:#64748b;text-align:left">Vto.</th><th style="padding:8px 18px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.15em;color:#64748b;text-align:left">Cuota $</th><th style="padding:8px 18px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.15em;color:#64748b;text-align:left">Capital</th><th style="padding:8px 18px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.15em;color:#64748b;text-align:left">Interés</th><th style="padding:8px 18px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.15em;color:#64748b;text-align:left">TC Rofex</th><th style="padding:8px 18px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.15em;color:#64748b;text-align:left">USD</th><th style="padding:8px 18px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.15em;color:#64748b;text-align:right">Acción</th></tr></thead><tbody>${rows}</tbody></table></div>
         <div style="display:flex;gap:7px;padding:12px 22px;border-top:1px solid rgba(255,255,255,0.03)">
           <button onclick="openModal('${p.id}')" style="background:#222a3d;color:#94a3b8;border:none;padding:6px 14px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;text-transform:uppercase;display:flex;align-items:center;gap:4px;font-family:Inter,sans-serif"><span class="ms" style="font-size:12px">edit</span>Editar</button>
           <button onclick="delPrestamo('${p.id}')" style="background:rgba(255,180,171,0.08);color:#ffb4ab;border:none;padding:6px 14px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;text-transform:uppercase;display:flex;align-items:center;gap:4px;font-family:Inter,sans-serif"><span class="ms" style="font-size:12px">delete</span>Eliminar</button>
@@ -1254,159 +1172,92 @@ function renderPrestamos() {
 //  PANEL ROFEX
 // ══════════════════════════════════════════════
 function renderRofexPanel() {
-  // Determinar rango de meses a cubrir
-  const hoy=todayStr();
-  const mesActual=hoy.slice(0,7);
-  // Mes más lejano de todos los préstamos activos
-  const pendFechas=S.prestamos.flatMap(p=>p.cuotas.filter(c=>!c.pagada).map(c=>c.fecha));
-  if (!pendFechas.length) {
-    document.getElementById('rofexCoberturaTitle').textContent='Sin cuotas pendientes';
-    document.getElementById('rofexCoberturaDesc').textContent='Todos los préstamos están completados.';
-    document.getElementById('rofexGrid').innerHTML='';
-    return;
-  }
+  const hoy=todayStr(), mesActual=hoy.slice(0,7);
+  const pendFechas=prestamos.flatMap(p=>p.cuotas.filter(c=>!c.pagada).map(c=>c.fecha));
+  if (!pendFechas.length) { document.getElementById('rofexCoberturaTitle').textContent='Sin cuotas pendientes'; document.getElementById('rofexCoberturaDesc').textContent='Todos los préstamos completados.'; document.getElementById('rofexGrid').innerHTML=''; return; }
   const mesMasLejano=pendFechas.sort().reverse()[0].slice(0,7);
-  // Préstamo más longevo
-  const prestMasLargo=S.prestamos.filter(p=>p.estado!=='cancelado').sort((a,b)=>{
-    const maxA=a.cuotas.filter(c=>!c.pagada).map(c=>c.fecha).sort().reverse()[0]||'';
-    const maxB=b.cuotas.filter(c=>!c.pagada).map(c=>c.fecha).sort().reverse()[0]||'';
-    return maxB.localeCompare(maxA);
-  })[0];
+  const prestMasLargo=prestamos.filter(p=>p.estado!=='cancelado').sort((a,b)=>{const mA=a.cuotas.filter(c=>!c.pagada).map(c=>c.fecha).sort().reverse()[0]||'';const mB=b.cuotas.filter(c=>!c.pagada).map(c=>c.fecha).sort().reverse()[0]||'';return mB.localeCompare(mA);})[0];
   const mesesRestantes=pendFechas.filter(f=>f.slice(0,7)>=mesActual).map(f=>f.slice(0,7));
   const mesesUnicos=[...new Set(mesesRestantes)].sort();
-
   document.getElementById('rofexCoberturaTitle').textContent=`Préstamo más largo: ${prestMasLargo?.nombre||'—'} → vence ${formatMes(mesMasLejano)}`;
   document.getElementById('rofexCoberturaDesc').textContent=`Necesitás cargar TC Rofex para ${mesesUnicos.length} mes${mesesUnicos.length!==1?'es':''}: ${formatMes(mesesUnicos[0])} → ${formatMes(mesMasLejano)}`;
-
-  // Grid de inputs por mes
   const grid=document.getElementById('rofexGrid');
-  grid.innerHTML=mesesUnicos.map(mes => {
+  grid.innerHTML=mesesUnicos.map(mes=>{
     const [y,mo]=mes.split('-');
     const label=MNS[parseInt(mo)-1]+' '+y;
-    const val=S.rofex[mes]||'';
-    const cuotasMes=S.prestamos.flatMap(p=>p.cuotas.filter(c=>!c.pagada&&c.fecha.startsWith(mes)));
+    const val=rofex[mes]||'';
+    const cuotasMes=prestamos.flatMap(p=>p.cuotas.filter(c=>!c.pagada&&c.fecha.startsWith(mes)));
     const pesosMes=cuotasMes.reduce((s,c)=>s+c.monto,0);
-    return `<div style="background:#131b2e;border-radius:9px;padding:11px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-        <span style="font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.12em;color:${val?'#4edea3':'#ffb95f'}">${label}</span>
-        <span style="font-size:9px;color:#475569">${cuotasMes.length} cuota${cuotasMes.length!==1?'s':''}</span>
-      </div>
-      <input type="number" class="rofex-month-input ${val?'filled':''}" data-mes="${mes}" placeholder="TC $/USD" value="${val}" oninput="previewRofex(this,'${mes}')"/>
-      <div id="rprev-${mes}" style="font-size:10px;color:#4edea3;margin-top:5px;min-height:14px">${val&&pesosMes?'≈ U$S '+fmt(r2(pesosMes/parseFloat(val))):''}</div>
-    </div>`;
+    return `<div style="background:#131b2e;border-radius:9px;padding:11px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><span style="font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.12em;color:${val?'#4edea3':'#ffb95f'}">${label}</span><span style="font-size:9px;color:#475569">${cuotasMes.length} cuota${cuotasMes.length!==1?'s':''}</span></div><input type="number" class="rofex-month-input ${val?'filled':''}" data-mes="${mes}" placeholder="TC $/USD" value="${val}" oninput="previewRofex(this,'${mes}')"/><div id="rprev-${mes}" style="font-size:10px;color:#4edea3;margin-top:5px;min-height:14px">${val&&pesosMes?'≈ U$S '+fmt(r2(pesosMes/parseFloat(val))):''}</div></div>`;
   }).join('');
-
   renderRofexPorPrestamo();
   renderRofexMesAMes(mesesUnicos);
 }
 
 function previewRofex(input, mes) {
   const tc=parseFloat(input.value);
-  const cuotasMes=S.prestamos.flatMap(p=>p.cuotas.filter(c=>!c.pagada&&c.fecha.startsWith(mes)));
+  const cuotasMes=prestamos.flatMap(p=>p.cuotas.filter(c=>!c.pagada&&c.fecha.startsWith(mes)));
   const pesos=cuotasMes.reduce((s,c)=>s+c.monto,0);
   const prev=document.getElementById('rprev-'+mes);
   if (tc&&pesos) { prev.textContent='≈ U$S '+fmt(r2(pesos/tc)); input.classList.add('filled'); }
   else { prev.textContent=''; input.classList.remove('filled'); }
 }
 
-function guardarRofex() {
+async function guardarRofex() {
   document.querySelectorAll('.rofex-month-input').forEach(inp => {
     const mes=inp.dataset.mes; const tc=parseFloat(inp.value);
-    if (mes) { if (tc&&tc>0) S.rofex[mes]=tc; else delete S.rofex[mes]; }
+    if (mes) { if (tc&&tc>0) rofex[mes]=tc; else delete rofex[mes]; }
   });
   aplicarRofexATodos();
-  save();
   renderAll();
   renderRofexPanel();
+  await apiSaveRofex();
 }
 
 function renderRofexPorPrestamo() {
   const cont=document.getElementById('rofexPorPrestamo');
-  const activos=S.prestamos; // mostrar todos incluyendo completados para referencia
-  cont.innerHTML=activos.map(p => {
-    const usdRec=getUsdRec(p);
-    const usdEstPend=getUsdEstPendiente(p);
-    const usdTotalEst=r2(usdRec+usdEstPend);
+  cont.innerHTML=prestamos.map(p=>{
+    const usdRec=getUsdRec(p), usdEstPend=getUsdEstPendiente(p), usdTotalEst=r2(usdRec+usdEstPend);
     const ganancia=r2(usdTotalEst-p.usdInvertidos);
     const cuotasSinTC=p.cuotas.filter(c=>!c.pagada&&!c.usdEst).length;
-    const cuotasConTC=p.cuotas.filter(c=>!c.pagada&&c.usdEst).length;
     const pct=p.cuotas.length>0?Math.round((p.cuotas.filter(c=>c.pagada).length/p.cuotas.length)*100):100;
     const tir=getTIR(p);
     return `<div style="background:#131b2e;border-radius:10px;padding:14px;display:flex;align-items:center;gap:14px">
-      <div style="flex:1;min-width:0">
-        <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">
-          <span style="font-weight:700;color:#f1f5f9;font-size:13px">${p.nombre}</span>
-          <span class="badge" style="background:${p.estado==='cancelado'?'rgba(78,222,163,0.1)':p.estado==='atrasado'?'rgba(255,180,171,0.1)':'rgba(173,198,255,0.1)'};color:${p.estado==='cancelado'?'#4edea3':p.estado==='atrasado'?'#ffb4ab':'#adc6ff'}">${p.estado}</span>
-          ${cuotasSinTC>0?`<span style="font-size:9px;color:#ffb95f;font-weight:700">⚠ ${cuotasSinTC} sin TC</span>`:''}
-        </div>
-        <div style="width:100%;height:3px;background:#222a3d;border-radius:2px;overflow:hidden"><div style="height:100%;border-radius:2px;background:#adc6ff;width:${pct}%"></div></div>
-      </div>
-      <div style="text-align:center;min-width:90px">
-        <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">Invertido</div>
-        <div style="font-weight:700;color:#f1f5f9;font-size:12px">U$S ${fmt(p.usdInvertidos)}</div>
-      </div>
-      <div style="text-align:center;min-width:90px">
-        <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">Recuperado</div>
-        <div style="font-weight:700;color:#4edea3;font-size:12px">U$S ${fmt(r2(usdRec))}</div>
-      </div>
-      ${p.estado==='cancelado' ? `
-      <div style="text-align:center;min-width:110px">
-        <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">Ganancia real</div>
-        <div style="font-weight:900;color:${r2(usdRec-p.usdInvertidos)>=0?'#4edea3':'#ffb4ab'};font-size:14px">${(r2(usdRec-p.usdInvertidos)>=0?'+':'')+fmt(r2(usdRec-p.usdInvertidos))} USD</div>
-      </div>
-      <div style="text-align:center;min-width:80px">
-        <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">TIR USD</div>
-        <div style="font-weight:900;font-size:14px;color:${tir!==null&&tir>0.2?'#4edea3':tir!==null?'#fbbf24':'#374151'}">${tir!==null?fmtPct(tir*100)+'%':'—'}</div>
-      </div>` : `
-      <div style="text-align:center;min-width:110px">
-        <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">Est. total</div>
-        <div style="font-weight:900;color:${usdEstPend>0?'#4edea3':'#374151'};font-size:14px">${usdEstPend>0?'U$S '+fmt(usdTotalEst):'—'}</div>
-        <div style="font-size:9px;color:${usdEstPend>0&&ganancia>=0?'#4edea3':'#ffb4ab'}">${usdEstPend>0?(ganancia>=0?'+':'')+fmt(ganancia)+' USD':''}</div>
-      </div>
-      <div style="text-align:center;min-width:80px">
-        <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">TIR USD</div>
-        <div style="font-weight:900;font-size:14px;color:#374151">—</div>
-      </div>`}
+      <div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:7px;margin-bottom:5px"><span style="font-weight:700;color:#f1f5f9;font-size:13px">${p.nombre}</span><span class="badge" style="background:${p.estado==='cancelado'?'rgba(78,222,163,0.1)':p.estado==='atrasado'?'rgba(255,180,171,0.1)':'rgba(173,198,255,0.1)'};color:${p.estado==='cancelado'?'#4edea3':p.estado==='atrasado'?'#ffb4ab':'#adc6ff'}">${p.estado}</span>${cuotasSinTC>0?`<span style="font-size:9px;color:#ffb95f;font-weight:700">⚠ ${cuotasSinTC} sin TC</span>`:''}</div><div style="width:100%;height:3px;background:#222a3d;border-radius:2px;overflow:hidden"><div style="height:100%;border-radius:2px;background:#adc6ff;width:${pct}%"></div></div></div>
+      <div style="text-align:center;min-width:90px"><div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">Invertido</div><div style="font-weight:700;color:#f1f5f9;font-size:12px">U$S ${fmt(p.usdInvertidos)}</div></div>
+      <div style="text-align:center;min-width:90px"><div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">Recuperado</div><div style="font-weight:700;color:#4edea3;font-size:12px">U$S ${fmt(r2(usdRec))}</div></div>
+      ${p.estado==='cancelado'?`<div style="text-align:center;min-width:110px"><div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">Ganancia real</div><div style="font-weight:900;color:${r2(usdRec-p.usdInvertidos)>=0?'#4edea3':'#ffb4ab'};font-size:14px">${(r2(usdRec-p.usdInvertidos)>=0?'+':'')+fmt(r2(usdRec-p.usdInvertidos))} USD</div></div><div style="text-align:center;min-width:80px"><div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">TIR USD</div><div style="font-weight:900;font-size:14px;color:${tir!==null&&tir>0.2?'#4edea3':tir!==null?'#fbbf24':'#374151'}">${tir!==null?fmtPct(tir*100)+'%':'—'}</div></div>`:`<div style="text-align:center;min-width:110px"><div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">Est. total</div><div style="font-weight:900;color:${usdEstPend>0?'#4edea3':'#374151'};font-size:14px">${usdEstPend>0?'U$S '+fmt(usdTotalEst):'—'}</div><div style="font-size:9px;color:${usdEstPend>0&&ganancia>=0?'#4edea3':'#ffb4ab'}">${usdEstPend>0?(ganancia>=0?'+':'')+fmt(ganancia)+' USD':''}</div></div><div style="text-align:center;min-width:80px"><div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">TIR USD</div><div style="font-weight:900;font-size:14px;color:#374151">—</div></div>`}
     </div>`;
   }).join('');
 }
 
 function renderRofexMesAMes(mesesUnicos) {
   const tbody=document.getElementById('rofexMesaTbody');
-  let acum=0; let totalUSD=0; let totalPesos=0;
-  // Incluir meses pasados del historial para contexto
-  const mesesHistorial=[...new Set(S.historial.filter(h=>h.tipo!=='refinanciacion').map(h=>h.fecha.slice(0,7)))].sort();
+  let acum=0;
+  const mesesHistorial=[...new Set(historial.filter(h=>h.tipo==='pago').map(h=>h.fecha.slice(0,7)))].sort();
   const todosMeses=[...new Set([...mesesHistorial,...mesesUnicos])].sort();
-
-  tbody.innerHTML=todosMeses.map(mes => {
+  tbody.innerHTML=todosMeses.map(mes=>{
     const [y,mo]=mes.split('-');
     const label=MNS[parseInt(mo)-1]+' '+y;
-    const esPasado=S.historial.some(h=>h.fecha.startsWith(mes));
-    const tcRofex=S.rofex[mes];
-    const cuotasMes=S.prestamos.flatMap(p=>p.cuotas.filter(c=>c.fecha.startsWith(mes)));
+    const esPasado=historial.some(h=>h.fecha.startsWith(mes)&&h.tipo==='pago');
+    const tcRofex=rofex[mes];
+    const cuotasMes=prestamos.flatMap(p=>p.cuotas.filter(c=>c.fecha.startsWith(mes)));
     const pesos=cuotasMes.reduce((s,c)=>s+c.monto,0);
     let usdMes=0;
-    if (esPasado) {
-      usdMes=S.historial.filter(h=>h.fecha.startsWith(mes)&&h.tipo!=='refinanciacion').reduce((s,h)=>s+(h.usdReal||0),0);
-    } else if (tcRofex) {
-      usdMes=r2(cuotasMes.filter(c=>!c.pagada).reduce((s,c)=>s+c.monto,0)/tcRofex);
-    }
+    if (esPasado) { usdMes=historial.filter(h=>h.fecha.startsWith(mes)&&h.tipo==='pago').reduce((s,h)=>s+(h.usdReal||0),0); }
+    else if (tcRofex) { usdMes=r2(cuotasMes.filter(c=>!c.pagada).reduce((s,c)=>s+c.monto,0)/tcRofex); }
     acum=r2(acum+usdMes);
-    if (usdMes>0) { totalUSD=r2(totalUSD+usdMes); totalPesos=r2(totalPesos+pesos); }
-    const cuotasCount=cuotasMes.length;
-    const nombresDeudores=[...new Set(S.prestamos.filter(p=>p.cuotas.some(c=>c.fecha.startsWith(mes))).map(p=>p.nombre))].join(', ');
+    const nombresDeudores=[...new Set(prestamos.filter(p=>p.cuotas.some(c=>c.fecha.startsWith(mes))).map(p=>p.nombre))].join(', ');
     return `<tr onmouseover="this.style.background='rgba(255,255,255,0.01)'" onmouseout="this.style.background=''">
       <td class="td"><span style="font-weight:700;color:#f1f5f9;font-size:12px">${label}</span>${esPasado?'<span class="badge" style="background:rgba(78,222,163,0.08);color:#4edea3;margin-left:6px">cobrado</span>':''}</td>
       <td class="td" style="color:${tcRofex?'#64748b':'#374151'};font-size:12px">${tcRofex?'$ '+tcRofex:(esPasado?'<span style="color:#475569">real</span>':'—')}</td>
-      <td class="td" style="font-size:11px;color:#8892aa">${cuotasCount} · ${nombresDeudores}</td>
+      <td class="td" style="font-size:11px;color:#8892aa">${cuotasMes.length} · ${nombresDeudores}</td>
       <td class="td" style="font-weight:700;color:#adc6ff;font-size:12px">$ ${fmt(pesos)}</td>
       <td class="td" style="font-weight:700;font-size:13px;color:${usdMes>0?'#4edea3':'#374151'}">${usdMes>0?'U$S '+fmt(usdMes):'—'}</td>
       <td class="td" style="font-weight:700;font-size:12px;color:${acum>0?'#4edea3':'#374151'}">${acum>0?'U$S '+fmt(acum):'—'}</td>
     </tr>`;
   }).join('');
-
-  // Total
-  const usdTotalInv=S.prestamos.reduce((s,p)=>s+p.usdInvertidos,0);
+  const usdTotalInv=prestamos.reduce((s,p)=>s+p.usdInvertidos,0);
   document.getElementById('rofexTotalUSD').textContent='U$S '+fmt(r2(acum));
   const ganTotal=r2(acum-usdTotalInv);
   document.getElementById('rofexGananciaTotal').textContent=`de U$S ${fmt(r2(usdTotalInv))} invertidos · ${ganTotal>=0?'+':''}U$S ${fmt(ganTotal)} ganancia est.`;
@@ -1418,27 +1269,13 @@ function renderRofexMesAMes(mesesUnicos) {
 // ══════════════════════════════════════════════
 function renderHistorial() {
   const tbody=document.getElementById('histTbody'), empty=document.getElementById('histEmpty');
-  if (!S.historial.length) { tbody.innerHTML=''; empty.style.display='block'; return; }
+  if (!historial.length) { tbody.innerHTML=''; empty.style.display='block'; return; }
   empty.style.display='none';
-  const totalUsd=S.historial.filter(h=>h.tipo!=='refinanciacion').reduce((s,h)=>s+(h.usdReal||0),0);
-  tbody.innerHTML=S.historial.map(h => {
-    if (h.tipo==='refinanciacion'||h.tipo==='mora') return `<tr style="background:rgba(255,185,95,0.03)" onmouseover="this.style.background='rgba(255,185,95,0.06)'" onmouseout="this.style.background='rgba(255,185,95,0.03)'" style="border-bottom:1px solid rgba(255,255,255,0.02)">
-      <td class="td"><div style="display:flex;align-items:center;gap:9px"><div style="width:26px;height:26px;border-radius:7px;background:rgba(255,185,95,0.1);display:flex;align-items:center;justify-content:center;color:#ffb95f"><span class="ms" style="font-size:12px">${h.tipo==='mora'?'warning':'refresh'}</span></div><span style="font-weight:700;color:#f1f5f9;font-size:12px">${h.nombre}</span></div></td>
-      <td class="td" style="color:#ffb95f;font-size:11px;font-weight:700">${h.tipo==='mora'?'MORA':'REFI'}</td>
-      <td class="td" colspan="5" style="color:#ffb95f;font-size:11px">${h.nota||''}</td>
-      <td class="td" style="color:#64748b;font-size:11px">${formatDate(h.fecha)}</td>
-    </tr>`;
-    const dif=h.usdEst?r2(h.usdReal-h.usdEst):null;
-    return `<tr onmouseover="this.style.background='rgba(255,255,255,0.01)'" onmouseout="this.style.background=''" style="border-bottom:1px solid rgba(255,255,255,0.02)">
-      <td class="td"><div style="display:flex;align-items:center;gap:9px"><div style="width:26px;height:26px;border-radius:7px;background:rgba(78,222,163,0.1);display:flex;align-items:center;justify-content:center;color:#4edea3"><span class="ms" style="font-size:12px">check_circle</span></div><div><div style="font-weight:700;color:#f1f5f9;font-size:12px">${h.nombre}</div></div></div></td>
-      <td class="td" style="color:#64748b;font-size:12px">#${h.cuotaN}</td>
-      <td class="td" style="font-weight:700;color:#adc6ff;font-size:12px">$ ${fmt(h.monto)}</td>
-      <td class="td" style="color:#64748b;font-size:12px">${h.tcReal?'$ '+h.tcReal:'—'}</td>
-      <td class="td" style="font-weight:900;color:#4edea3;font-size:13px">U$S ${fmt(h.usdReal||0)}</td>
-      <td class="td" style="color:#475569;font-size:11px">${h.usdEst?'U$S '+fmt(h.usdEst):'—'}</td>
-      <td class="td" style="font-weight:700;color:${dif===null?'#64748b':dif>=0?'#4edea3':'#ffb4ab'};font-size:12px">${dif!==null?(dif>=0?'+':'')+fmt(dif)+' USD':'—'}</td>
-      <td class="td" style="color:#64748b;font-size:12px">${formatDate(h.fecha)}</td>
-    </tr>`;
+  const totalUsd=historial.filter(h=>h.tipo==='pago').reduce((s,h)=>s+(h.usdReal||0),0);
+  tbody.innerHTML=historial.map(h=>{
+    if (h.tipo==='refinanciacion'||h.tipo==='mora') return `<tr style="background:rgba(255,185,95,0.03)" onmouseover="this.style.background='rgba(255,185,95,0.06)'" onmouseout="this.style.background='rgba(255,185,95,0.03)'" style="border-bottom:1px solid rgba(255,255,255,0.02)"><td class="td"><div style="display:flex;align-items:center;gap:9px"><div style="width:26px;height:26px;border-radius:7px;background:rgba(255,185,95,0.1);display:flex;align-items:center;justify-content:center;color:#ffb95f"><span class="ms" style="font-size:12px">${h.tipo==='mora'?'warning':'refresh'}</span></div><span style="font-weight:700;color:#f1f5f9;font-size:12px">${h.nombre}</span></div></td><td class="td" style="color:#ffb95f;font-size:11px;font-weight:700">${h.tipo==='mora'?'MORA':'REFI'}</td><td class="td" colspan="5" style="color:#ffb95f;font-size:11px">${h.nota||''}</td><td class="td" style="color:#64748b;font-size:11px">${formatDate(h.fecha)}</td></tr>`;
+    const dif=h.usdEst?r2((h.usdReal||0)-h.usdEst):null;
+    return `<tr onmouseover="this.style.background='rgba(255,255,255,0.01)'" onmouseout="this.style.background=''" style="border-bottom:1px solid rgba(255,255,255,0.02)"><td class="td"><div style="display:flex;align-items:center;gap:9px"><div style="width:26px;height:26px;border-radius:7px;background:rgba(78,222,163,0.1);display:flex;align-items:center;justify-content:center;color:#4edea3"><span class="ms" style="font-size:12px">check_circle</span></div><div style="font-weight:700;color:#f1f5f9;font-size:12px">${h.nombre}</div></div></td><td class="td" style="color:#64748b;font-size:12px">#${h.cuotaN}</td><td class="td" style="font-weight:700;color:#adc6ff;font-size:12px">$ ${fmt(h.monto)}</td><td class="td" style="color:#64748b;font-size:12px">${h.tcReal?'$ '+h.tcReal:'—'}</td><td class="td" style="font-weight:900;color:#4edea3;font-size:13px">U$S ${fmt(h.usdReal||0)}</td><td class="td" style="color:#475569;font-size:11px">${h.usdEst?'U$S '+fmt(h.usdEst):'—'}</td><td class="td" style="font-weight:700;color:${dif===null?'#64748b':dif>=0?'#4edea3':'#ffb4ab'};font-size:12px">${dif!==null?(dif>=0?'+':'')+fmt(dif)+' USD':'—'}</td><td class="td" style="color:#64748b;font-size:12px">${formatDate(h.fecha)}</td></tr>`;
   }).join('')+`<tr style="background:#222a3d"><td colspan="4" style="padding:11px 18px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.18em;color:#8892aa">TOTAL RECUPERADO</td><td style="padding:11px 18px;font-weight:900;color:#4edea3;font-size:15px">U$S ${fmt(r2(totalUsd))}</td><td colspan="3"></td></tr>`;
 }
 
@@ -1450,127 +1287,100 @@ function renderCharts() {
   const gc='rgba(66,71,84,0.5)',tc='#8892aa';
   const axes={x:{ticks:{color:tc,font:{family:'Inter',size:10}},grid:{color:gc}},y:{ticks:{color:tc,font:{family:'Inter',size:10}},grid:{color:gc}}};
   const leg={labels:{color:tc,font:{family:'Inter',size:11}}};
-
-  // TIR table
-  document.getElementById('tirTable').innerHTML=S.prestamos.map(p => {
+  document.getElementById('tirTable').innerHTML=prestamos.map(p=>{
     const usdRec=r2(getUsdRec(p)), usdEstPend=getUsdEstPendiente(p), usdTotalEst=r2(usdRec+usdEstPend);
-    const ganReal=r2(usdRec-p.usdInvertidos);
-    const ganEst=r2(usdTotalEst-p.usdInvertidos);
+    const ganReal=r2(usdRec-p.usdInvertidos), ganEst=r2(usdTotalEst-p.usdInvertidos);
     const tir=getTIR(p);
-    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-radius:9px;background:#131b2e;margin-bottom:7px">
-      <div style="display:flex;align-items:center;gap:10px;min-width:150px">
-        <span style="font-weight:700;color:#f1f5f9;font-size:13px">${p.nombre}</span>
-        <span class="badge" style="background:${p.estado==='cancelado'?'rgba(78,222,163,0.1)':p.estado==='atrasado'?'rgba(255,180,171,0.1)':'rgba(173,198,255,0.1)'};color:${p.estado==='cancelado'?'#4edea3':p.estado==='atrasado'?'#ffb4ab':'#adc6ff'}">${p.estado}</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:20px;text-align:right">
-        <div style="min-width:80px"><div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">Invertido</div><div style="font-weight:700;color:#f1f5f9;font-size:12px">U$S ${fmt(p.usdInvertidos)}</div></div>
-        <div style="min-width:80px"><div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">Recuperado</div><div style="font-weight:700;color:#4edea3;font-size:12px">U$S ${fmt(usdRec)}</div></div>
-        ${p.estado==='cancelado'
-          ? `<div style="min-width:100px"><div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">Ganancia real</div><div style="font-weight:700;color:${ganReal>=0?'#4edea3':'#ffb4ab'};font-size:12px">${(ganReal>=0?'+':'')+fmt(ganReal)} USD</div></div>
-        <div style="min-width:75px"><div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">TIR anual USD</div><div style="font-weight:900;font-size:15px;color:${tir!==null&&tir>0.2?'#4edea3':tir!==null?'#fbbf24':'#64748b'}">${tir!==null?fmtPct(tir*100)+'%':'—'}</div></div>`
-          : `<div style="min-width:100px"><div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">Est. total</div><div style="font-weight:700;color:${usdEstPend>0?'#4edea3':'#374151'};font-size:12px">${usdEstPend>0?'U$S '+fmt(usdTotalEst):'—'}</div><div style="font-size:9px;color:${usdEstPend>0&&ganEst>=0?'#4edea3':'#ffb4ab'}">${usdEstPend>0?(ganEst>=0?'+':'')+fmt(ganEst)+' USD':''}</div></div>
-        <div style="min-width:75px"><div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">TIR anual USD</div><div style="font-weight:900;font-size:15px;color:#374151">—</div></div>`
-        }
-      </div>
-    </div>`;
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-radius:9px;background:#131b2e;margin-bottom:7px"><div style="display:flex;align-items:center;gap:10px;min-width:150px"><span style="font-weight:700;color:#f1f5f9;font-size:13px">${p.nombre}</span><span class="badge" style="background:${p.estado==='cancelado'?'rgba(78,222,163,0.1)':p.estado==='atrasado'?'rgba(255,180,171,0.1)':'rgba(173,198,255,0.1)'};color:${p.estado==='cancelado'?'#4edea3':p.estado==='atrasado'?'#ffb4ab':'#adc6ff'}">${p.estado}</span></div><div style="display:flex;align-items:center;gap:20px;text-align:right"><div style="min-width:80px"><div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">Invertido</div><div style="font-weight:700;color:#f1f5f9;font-size:12px">U$S ${fmt(p.usdInvertidos)}</div></div><div style="min-width:80px"><div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">Recuperado</div><div style="font-weight:700;color:#4edea3;font-size:12px">U$S ${fmt(usdRec)}</div></div>${p.estado==='cancelado'?`<div style="min-width:100px"><div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">Ganancia real</div><div style="font-weight:700;color:${ganReal>=0?'#4edea3':'#ffb4ab'};font-size:12px">${(ganReal>=0?'+':'')+fmt(ganReal)} USD</div></div><div style="min-width:75px"><div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">TIR anual USD</div><div style="font-weight:900;font-size:15px;color:${tir!==null&&tir>0.2?'#4edea3':tir!==null?'#fbbf24':'#64748b'}">${tir!==null?fmtPct(tir*100)+'%':'—'}</div></div>`:`<div style="min-width:100px"><div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">Est. total</div><div style="font-weight:700;color:${usdEstPend>0?'#4edea3':'#374151'};font-size:12px">${usdEstPend>0?'U$S '+fmt(usdTotalEst):'—'}</div><div style="font-size:9px;color:${usdEstPend>0&&ganEst>=0?'#4edea3':'#ffb4ab'}">${usdEstPend>0?(ganEst>=0?'+':'')+fmt(ganEst)+' USD':''}</div></div><div style="min-width:75px"><div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">TIR anual USD</div><div style="font-weight:900;font-size:15px;color:#374151">—</div></div>`}</div></div>`;
   }).join('');
-
-  // USD por mes (últimos 8)
   const m8=[],now=new Date();
   for(let i=7;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);m8.push(d.toISOString().slice(0,7));}
-  charts.usd=new Chart(document.getElementById('chartUSD'),{type:'bar',data:{labels:m8.map(m=>{ const[y,mo]=m.split('-'); return MNS[parseInt(mo)-1]+'/'+y.slice(2); }),datasets:[{label:'USD real recuperado',data:m8.map(m=>S.historial.filter(h=>h.fecha.startsWith(m)&&h.tipo!=='refinanciacion').reduce((s,h)=>s+(h.usdReal||0),0)),backgroundColor:'rgba(78,222,163,0.6)',borderRadius:4}]},options:{responsive:true,plugins:{legend:leg},scales:axes}});
-
-  // Cartera doughnut
-  const inv=S.prestamos.reduce((s,p)=>s+p.usdInvertidos,0);
-  const rec=S.prestamos.reduce((s,p)=>s+getUsdRec(p),0);
+  charts.usd=new Chart(document.getElementById('chartUSD'),{type:'bar',data:{labels:m8.map(m=>{const[y,mo]=m.split('-');return MNS[parseInt(mo)-1]+'/'+y.slice(2);}),datasets:[{label:'USD real recuperado',data:m8.map(m=>historial.filter(h=>h.fecha.startsWith(m)&&h.tipo==='pago').reduce((s,h)=>s+(h.usdReal||0),0)),backgroundColor:'rgba(78,222,163,0.6)',borderRadius:4}]},options:{responsive:true,plugins:{legend:leg},scales:axes}});
+  const inv=prestamos.reduce((s,p)=>s+p.usdInvertidos,0), rec=prestamos.reduce((s,p)=>s+getUsdRec(p),0);
   charts.car=new Chart(document.getElementById('chartCartera'),{type:'doughnut',data:{labels:['En la calle','Recuperado'],datasets:[{data:[Math.max(0,inv-rec),rec],backgroundColor:['rgba(173,198,255,0.7)','rgba(78,222,163,0.7)'],borderColor:'#171f33',borderWidth:2}]},options:{responsive:true,plugins:{legend:leg}}});
-
-  // Est vs Real
-  const estPM=m8.map(m=>S.historial.filter(h=>h.fecha.startsWith(m)&&h.usdEst).reduce((s,h)=>s+h.usdEst,0));
-  const realPM=m8.map(m=>S.historial.filter(h=>h.fecha.startsWith(m)&&h.tipo!=='refinanciacion').reduce((s,h)=>s+(h.usdReal||0),0));
-  charts.evr=new Chart(document.getElementById('chartEstVsReal'),{type:'bar',data:{labels:m8.map(m=>{ const[y,mo]=m.split('-'); return MNS[parseInt(mo)-1]+'/'+y.slice(2); }),datasets:[{label:'USD estimado (Rofex)',data:estPM,backgroundColor:'rgba(173,198,255,0.3)',borderRadius:4},{label:'USD real cobrado',data:realPM,backgroundColor:'rgba(78,222,163,0.65)',borderRadius:4}]},options:{responsive:true,plugins:{legend:leg},scales:axes}});
+  const estPM=m8.map(m=>historial.filter(h=>h.fecha.startsWith(m)&&h.usdEst).reduce((s,h)=>s+h.usdEst,0));
+  const realPM=m8.map(m=>historial.filter(h=>h.fecha.startsWith(m)&&h.tipo==='pago').reduce((s,h)=>s+(h.usdReal||0),0));
+  charts.evr=new Chart(document.getElementById('chartEstVsReal'),{type:'bar',data:{labels:m8.map(m=>{const[y,mo]=m.split('-');return MNS[parseInt(mo)-1]+'/'+y.slice(2);}),datasets:[{label:'USD estimado (Rofex)',data:estPM,backgroundColor:'rgba(173,198,255,0.3)',borderRadius:4},{label:'USD real cobrado',data:realPM,backgroundColor:'rgba(78,222,163,0.65)',borderRadius:4}]},options:{responsive:true,plugins:{legend:leg},scales:axes}});
 }
 
 // ══════════════════════════════════════════════
 //  CONFIG
 // ══════════════════════════════════════════════
-function saveGasUrl(){
-  S.gasUrl=document.getElementById('gasUrl').value.trim();
-  save();
-  const st=document.getElementById('gasStatus');
-  if(S.gasUrl){
-    st.textContent='Conectando con Sheets...';
-    st.style.color='#fbbf24';
-    // Leer desde Sheets inmediatamente
-    loadFromSheets((ok) => {
-      if(ok){
-        st.textContent='✓ Conectado — datos cargados desde Sheets';
-        st.style.color='#4edea3';
-      } else {
-        st.textContent='URL guardada — no se pudo leer (verificá la URL y los permisos)';
-        st.style.color='#ffb95f';
-      }
+function saveGasUrl() {
+  const url = document.getElementById('gasUrl').value.trim();
+  GAS_URL = url;
+  localStorage.setItem(GAS_URL_KEY, url);
+  const st = document.getElementById('gasStatus');
+  if (url) {
+    st.textContent = 'Conectando...'; st.style.color = '#fbbf24';
+    recargarDesdeSheets().then(() => {
+      st.textContent = '✓ Conectado — datos cargados desde Sheets';
+      st.style.color = '#4edea3';
+    }).catch(() => {
+      st.textContent = 'No se pudo conectar — verificá la URL';
+      st.style.color = '#ffb4ab';
     });
   } else {
-    st.textContent='Sin conectar — datos guardados localmente';
-    st.style.color='#475569';
+    st.textContent = 'Sin conectar'; st.style.color = '#475569';
   }
 }
-function cambiarPin(){
-  const a=document.getElementById('pinActual').value,n=document.getElementById('pinNuevo').value,msg=document.getElementById('pinMsg');
-  if(a!==S.pin){msg.style.color='#ffb4ab';msg.textContent='PIN actual incorrecto.';return;}
-  if(!/^\d{4}$/.test(n)){msg.style.color='#ffb4ab';msg.textContent='El PIN debe ser 4 dígitos.';return;}
-  S.pin=n;save();msg.style.color='#4edea3';msg.textContent='✓ PIN actualizado.';
-  document.getElementById('pinActual').value='';document.getElementById('pinNuevo').value='';
+
+function cambiarPin() {
+  const a=document.getElementById('pinActual').value, n=document.getElementById('pinNuevo').value;
+  const msg=document.getElementById('pinMsg');
+  if (a!==PIN) { msg.style.color='#ffb4ab'; msg.textContent='PIN actual incorrecto.'; return; }
+  if (!/^\d{4}$/.test(n)) { msg.style.color='#ffb4ab'; msg.textContent='El PIN debe ser 4 dígitos.'; return; }
+  PIN=n; localStorage.setItem('prestatrack_pin',n);
+  msg.style.color='#4edea3'; msg.textContent='✓ PIN actualizado.';
+  document.getElementById('pinActual').value=''; document.getElementById('pinNuevo').value='';
   setTimeout(()=>msg.textContent='',3000);
 }
-function exportData(){const b=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='prestatrack_'+todayStr()+'.json';a.click();}
-function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{S={...S,...JSON.parse(ev.target.result)};save();renderAll();alert('Importado correctamente.');}catch{alert('Archivo inválido.');}};r.readAsText(f);}
+
+function exportData() {
+  const b=new Blob([JSON.stringify({prestamos,historial,rofex},null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(b);
+  a.download='prestatrack_'+todayStr()+'.json'; a.click();
+}
+
+function importData(e) {
+  const f=e.target.files[0]; if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try {
+      const d=JSON.parse(ev.target.result);
+      if (d.prestamos) prestamos=d.prestamos.map(parsePrestamo);
+      if (d.historial) historial=d.historial.map(parseHistorial);
+      if (d.rofex) rofex=d.rofex;
+      aplicarRofexATodos(); renderAll();
+      alert('Importado correctamente. Usá el botón Recargar para sincronizar con Sheets.');
+    } catch { alert('Archivo inválido.'); }
+  };
+  r.readAsText(f);
+}
 
 // ══════════════════════════════════════════════
-//  SYNC
+//  SYNC UI
 // ══════════════════════════════════════════════
-function setSyncUI(s){
-  const dot=document.getElementById('syncDot'),txt=document.getElementById('syncTxt'),full=document.getElementById('syncFull'),ok=document.getElementById('syncOk');
-  full.style.display='none';ok.style.display='none';
-  if(s==='syncing'){full.style.display='flex';dot.style.background='#fbbf24';txt.textContent='Guardando...';}
-  else if(s==='ok'){ok.style.display='flex';dot.style.background='#4edea3';txt.textContent='Sincronizado';setTimeout(()=>ok.style.display='none',4000);}
-  else if(s==='error'){dot.style.background='#ffb4ab';txt.textContent='Error sync';}
-  else{dot.style.background='#374151';txt.textContent='Local';}
+function setSyncUI(s) {
+  const dot=document.getElementById('syncDot'), txt=document.getElementById('syncTxt');
+  const full=document.getElementById('syncFull'), ok=document.getElementById('syncOk');
+  full.style.display='none'; ok.style.display='none';
+  if (s==='syncing') { full.style.display='flex'; dot.style.background='#fbbf24'; dot.style.animation='pulse 1s infinite'; txt.textContent='Guardando...'; }
+  else if (s==='ok') { ok.style.display='flex'; dot.style.background='#4edea3'; dot.style.animation=''; txt.textContent='Sheets'; setTimeout(()=>ok.style.display='none',3000); }
+  else if (s==='error') { dot.style.background='#ffb4ab'; dot.style.animation=''; txt.textContent='Error'; }
+  else { dot.style.background='#4edea3'; dot.style.animation=''; txt.textContent='Sheets'; }
 }
+
 // ══════════════════════════════════════════════
 //  UTILS
 // ══════════════════════════════════════════════
-function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
-function fmt(n){return isNaN(n)?'0':Number(n.toFixed(2)).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});}
-function fmtPct(n){if(isNaN(n)||!isFinite(n))return'—';return Number(n).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2});}
-function todayStr(){return new Date().toISOString().slice(0,10);}
-function addMonths(s,m){const d=new Date(s+'T12:00:00');d.setMonth(d.getMonth()+m);return d.toISOString().slice(0,10);}
-function formatDate(s){if(!s)return'—';const[y,mo,d]=s.split('-');return`${d}/${mo}/${y}`;}
-function formatMes(m){if(!m)return'—';const[y,mo]=m.split('-');return MNS[parseInt(mo)-1]+' '+y;}
-
-// ══════════════════════════════════════════════
-//  INIT
-// ══════════════════════════════════════════════
-load();
-buildInitialData();
-
-// Al abrir la app, mostrar un indicador de carga desde Sheets
-// Se dispara después de que el usuario ingresa el PIN
-const _origUnlock = pp;
-function initAfterUnlock() {
-  // Intentar leer desde Sheets en background
-  if (S.gasUrl) {
-    // Mostrar indicador de carga en sidebar
-    const dot = document.getElementById('syncDot');
-    const txt = document.getElementById('syncTxt');
-    if (dot) { dot.style.background = '#fbbf24'; dot.style.animation = 'pulse 1s infinite'; }
-    if (txt) txt.textContent = 'Cargando...';
-    loadFromSheets(() => {
-      if (dot) dot.style.animation = '';
-    });
-  }
-}
+function uid() { return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function fmt(n) { return isNaN(n)?'0':Number(n.toFixed(2)).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmtPct(n) { if(isNaN(n)||!isFinite(n))return'—'; return Number(n).toLocaleString('es-AR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function todayStr() { return new Date().toISOString().slice(0,10); }
+function addMonths(s,m) { const d=new Date(s+'T12:00:00'); d.setMonth(d.getMonth()+m); return d.toISOString().slice(0,10); }
+function formatDate(s) { if(!s)return'—'; const[y,mo,d]=s.split('-'); return`${d}/${mo}/${y}`; }
+function formatMes(m) { if(!m)return'—'; const[y,mo]=m.split('-'); return MNS[parseInt(mo)-1]+' '+y; }
 </script>
 </body>
 </html>
